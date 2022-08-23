@@ -1,0 +1,33 @@
+repos:
+  # Formatter
+  - repo: https://github.com/psf/black
+    rev: 22.3.0 # or master
+    hooks:
+      - id: black
+
+  # Pre commit checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0 # or master
+    hooks:
+      - id: check-case-conflict
+      - id: check-json
+      - id: check-symlinks
+      - id: check-xml
+      - id: check-yaml
+
+      # - id: double-quote-string-fixer
+      - id: end-of-file-fixer
+      # - id: no-commit-to-branch
+      - id: pretty-format-json
+        args: [--autofix, --no-sort-keys, --no-ensure-ascii]
+
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+
+  # Commit messages checks
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: master
+    hooks:
+      - id: commitizen
+        # - id: commitizen-branch # ensure the entire branch follows this convention
+        stages: [commit-msg]
