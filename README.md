@@ -54,6 +54,10 @@ To effectively use the template you have to ensure that:
 1. Each person should create your branch according to feature (`git checkout -b feature/AmazingNewFeature`)
 2. Add your changes (`git add -A`)
 3. Commit your Changes (`git commit -a 'prefix: informative commit message'`)
+   ```
+   prefix must follow the following
+   build | ci | docs | feat | fix | perf | refactor | style | test | chore | revert | bump
+   ```
 4. Push to the Branch (`git push`)
 5. Open a Pull Request on GitHub
 

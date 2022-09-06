@@ -13,6 +13,7 @@ call conda install --yes -c conda-forge pre_commit
 call conda install --yes -c conda-forge commitizen
 call pre-commit install
 call pre-commit autoupdate
+call pre-commit install --hook-type commit-msg pre-push
 
 echo Finished setting up conda env and pre-commit
 pause

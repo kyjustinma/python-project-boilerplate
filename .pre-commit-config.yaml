@@ -21,8 +21,8 @@ repos:
 
       # - id: check-yaml
       # - id: double-quote-string-fixer
-      # - id: no-commit-to-branch
-      #   args: ["--branch", "master", "--branch", "main"]
+      - id: no-commit-to-branch
+        args: ["--branch", "master", "--branch", "main"]
 
   # Commit messages checks
 repos:
