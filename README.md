@@ -59,7 +59,7 @@ To effectively use the template you have to ensure that:
    build | ci | docs | feat | fix | perf | refactor | style | test | chore | revert | bump
    ```
 4. Push to the Branch (`git push`)
-5. Open a Pull Request on GitHub
+5. Open a Pull Request (PR) on GitHub to develop / main
 
 # Roadmap
 

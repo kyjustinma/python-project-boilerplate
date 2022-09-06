@@ -1,9 +1,14 @@
 import logging
-
 import os
 import sys
 import argparse
 import logging
+
+from utils import createCipheriv
+
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
 
 __CWD_DIR__ = os.path.abspath(os.getcwd())
 __SCRIPT_DIR__ = os.path.dirname(os.path.abspath(__file__))
@@ -17,7 +22,7 @@ def parse_arguments():
         metavar="--verbosity",
         type=int,
         required=False,
-        default=3,
+        default=int(config["VERBOSE"]),
         help="Verbosity of logging: 0 -critical, 1- error, 2 -warning, 3 -info, 4 -debug",
     )
     parser.add_argument(

@@ -1,20 +1,22 @@
 import sys
 import logging
 
-
 from hashlib import md5
 from Crypto.Cipher import AES
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
+logging.basicConfig(
+    format="%(asctime)s | %(levelname)s: %(message)s",
+    level=int(config["VERBOSE"]),
+    stream=sys.stdout,
+)
 
 """
 Encryption based on aes-256-cbc algorithm
 This is made to be compatible with node "crypto.createCipheriv"
 The returned crypto is a hex to allow it to be used in links etc
 """
-logging.basicConfig(
-    format="%(asctime)s | %(levelname)s: %(message)s",
-    level=3,
-    stream=sys.stdout,
-)
 
 CRYPTO_KEY: str = "12345678901234567890123456789012"
 INT_VECTOR: str = "1234567890123456"
