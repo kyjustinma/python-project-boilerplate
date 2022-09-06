@@ -10,6 +10,7 @@ cd /d %mypath%
 call conda env create --name %env_name% -f requirements.yml
 call conda activate %env_name%
 call conda install --yes -c conda-forge pre_commit
+call conda install --yes -c conda-forge commitizen
 call pre-commit install
 call pre-commit autoupdate
 
