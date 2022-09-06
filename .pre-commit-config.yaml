@@ -30,4 +30,3 @@ repos:
     hooks:
       - id: commitizen
         # - id: commitizen-branch # ensure the entire branch follows this convention
-        stages: [commit-msg]
