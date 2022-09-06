@@ -11,6 +11,7 @@ call conda env create --name %env_name% -f requirements.yml
 call conda activate %env_name%
 call conda install --yes -c conda-forge pre_commit
 call pre-commit install
+call pre-commit autoupdate
 
 echo Finished setting up conda env and pre-commit
 pause
