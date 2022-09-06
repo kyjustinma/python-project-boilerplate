@@ -9,6 +9,8 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0 # or master
     hooks:
+      - id: no-commit-to-branch
+        args: ["--branch", "main", "--branch", "master"]
       - id: check-case-conflict
       - id: check-json
       - id: check-symlinks
@@ -21,8 +23,7 @@ repos:
 
       # - id: check-yaml
       # - id: double-quote-string-fixer
-      - id: no-commit-to-branch
-        args: ["--branch", "master", "--branch", "main"]
+
 
   # Commit messages checks
 repos:
