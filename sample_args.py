@@ -39,7 +39,7 @@ def parse_arguments():
         metavar="--script",
         required=False,
         default=__SCRIPT_DIR__,
-        help="Prints the script directory",
+        help="Prints the script's directory",
     )
 
     args = parser.parse_args()

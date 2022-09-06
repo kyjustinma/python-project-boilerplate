@@ -15,14 +15,15 @@ repos:
       - id: check-json
       - id: check-symlinks
       - id: check-xml
-      - id: end-of-file-fixer
-      - id: trailing-whitespace
+      # - id: check-yaml
+
+      # - id: double-quote-string-fixer
       - id: end-of-file-fixer
       - id: pretty-format-json
         args: [--autofix, --no-sort-keys, --no-ensure-ascii]
 
-      # - id: check-yaml
-      # - id: double-quote-string-fixer
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
 
 
   # Commit messages checks
