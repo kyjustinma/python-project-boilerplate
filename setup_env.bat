@@ -11,6 +11,7 @@ call conda env create --name %env_name% -f requirements.yml
 call conda activate %env_name%
 call conda install --yes -c conda-forge pre_commit
 call conda install --yes -c conda-forge commitizen
+call conda install --yes -c conda-forge python-dotenv
 call pre-commit install
 call pre-commit autoupdate
 call pre-commit install --hook-type commit-msg pre-push
