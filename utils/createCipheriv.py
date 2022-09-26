@@ -36,22 +36,22 @@ class AES_Encoder:
             self.key = key
             self.iv = iv
         else:
-            self.key = CRYPTO_KEY
-            self.iv = INT_VECTOR
+            self.key = CRYPTO_KEY.encode("utf8")
+            self.iv = INT_VECTOR.encode("utf8")
 
     def _pad(self, s):  # padding to ensure the length is correct
         return s + (AES.block_size - len(s) % AES.block_size) * chr(
             AES.block_size - len(s) % AES.block_size
-        )
+        ).encode("utf8")
 
     def _cipher(self):
-        return AES.new(key=self.key, mode=AES.MODE_CBC, IV=self.iv)
+        return AES.new(key=(self.key), mode=AES.MODE_CBC, IV=(self.iv))
 
     def unpad(self, s):
         return s[: -ord(s[len(s) - 1 :])]
 
     def encrypt_token(self, data: str):
-        return self._cipher().encrypt(self._pad(data)).hex()
+        return self._cipher().encrypt(self._pad(data.encode("utf8"))).hex()
 
     def decrypt_token(self, data: str):
         data = bytes.fromhex(data)
