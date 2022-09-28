@@ -22,32 +22,54 @@ This template is primary focused on Python 3.8.13 with Anaconda (using Conda-for
 
 ## Installation
 
+### Windows
 Below is instruction on how to install the custom Conda Environment
 
-1. Open the folder directory in CMD / Terminal and Run the file below
+1. Move the requirements.txt (pip) or requirements.yaml (Conda) into `setup\requirements`
+2. Open the folder directory in CMD / Terminal and Run the batch file in setup accordingly
+
+   **Conda** install
    ```
-   setup_env.bat
+   setup\pip_setup_venv.bat
    ```
-2. You will be prompted to enter the `<env_name>`, please select a suitable name and ensure that the environment does not already exist
-3. The environment will be installed and `pre-commit` will also be installed.
-4. The env comes with the below as standard
+   **Pip3** install
+   ```
+   setup\conda_setup_venv.bat
+   ```
+3. You will be prompted to enter the `<env_name>`, please select a suitable name and ensure that the environment does not already exist
+4. The environment will be installed and `pre-commit` will also be installed.
+5. The env comes with the below as standard
    1. numpy
    2. pandas
    3. pycrypto
    4. pre-commit - installed and applied after via command line
 
-## Flow
 
-To effectively use the template you have to ensure that:
+### MacOS: **TODO**
+
+
+
+# Flow
+
+To effectively use the template with Pre-Commit you have to ensure that your custom env is setup:
 
 1. Conda environment is active when using python
+
+   **Conda** env
    ```
    conda activate <env_name>
    ```
+   **Pip3** venv
+   ```
+   <env_name>\Scripts\activate
+   ```
 2. pre-commit is installed
-   ```
-   pre-commit install
-   ```
+    ```
+    pre-commit install
+    pre-commit autoupdate
+    pre-commit install --hook-type commit-msg
+    pre-commit install --hook-type pre-push
+    ```
 
 ## Working as a team with Git
 
@@ -64,7 +86,7 @@ To effectively use the template you have to ensure that:
 # Roadmap
 
 ## Features
-
+- [ ] MacOS setup batch equivalent
 - [ ] Implement **init**.py into template
 - [ ] Add more custom utils
 - [ ] Convert to flask server
@@ -72,7 +94,7 @@ To effectively use the template you have to ensure that:
 
 ## Bugs
 
-None?
+Please raise any bugs found to me, Thank you.
 
 [python3.8.13-shield]: https://img.shields.io/badge/Python-3.8.13-brightgreen
 [python3.8.13-url]: https://www.python.org/downloads/release/python-3813/
