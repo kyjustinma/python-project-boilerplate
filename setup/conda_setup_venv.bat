@@ -6,7 +6,7 @@ echo Current Path:  %mypath%
 set /p env_name= Enter name of conda environment:
 
 cd /d %mypath%
-cd..
+cd ..
 
 @REM Installs Env from requirements.yml and installs precommit
 call conda env create --name %env_name% -f  setup\requirements\requirements.yml
