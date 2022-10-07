@@ -3,12 +3,12 @@ import logging
 
 from hashlib import md5
 from Crypto.Cipher import AES
-from dotenv import dotenv_values
+import config.settings as settings
 
-config = dotenv_values(".env")
+
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s: %(message)s",
-    level=int(config["VERBOSE"]),
+    level=settings.config["VERBOSE"],
     stream=sys.stdout,
 )
 
