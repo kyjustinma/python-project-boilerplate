@@ -50,19 +50,20 @@ def parse_arguments():
     )
 
     args = parser.parse_args()
-    verbose = {
-        0: logging.CRITICAL,
-        1: logging.ERROR,
-        2: logging.WARNING,
-        3: logging.INFO,
-        4: logging.DEBUG,
-    }
-    logging.basicConfig(
-        format="%(asctime)s | [%(filename)s][%(levelname)s]: %(message)s",
-        level=verbose[args.verbose],
-        stream=sys.stdout,
-    )
-    logging.info(f"Logging level is at {args.verbose}")
+
+    # verbose = {
+    #     0: logging.CRITICAL,
+    #     1: logging.ERROR,
+    #     2: logging.WARNING,
+    #     3: logging.INFO,
+    #     4: logging.DEBUG,
+    # }
+    # logging.basicConfig(
+    #     format="%(asctime)s | [%(levelname)5s][%(filename)20s] | %(message)s",
+    #     level=verbose[args.verbose],
+    #     stream=sys.stdout,
+    # )
+    # logging.info(f"Logging level is at {args.verbose}")
 
     return args
 
