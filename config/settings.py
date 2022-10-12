@@ -5,23 +5,30 @@ import os
 import time
 import typing
 import socket
+import logging
+import logging.config
+import yaml
 
 from dotenv import dotenv_values
 
 env_config = dotenv_values(".env")
+file_path = os.path.dirname(os.path.realpath(__file__))
+
+
+global logger
 
 
 def __init__():  # On initialisation
     print("")
     global config
     config = {}
-
     ### Getting ENV from dotenv
     env_get("VERBOSE", default=3, type=int)
     env_get("FLASK_PORT", 8080, type=int)
     env_get("FLASK_IP", get_ip())
 
     mappings()
+    logger_init("lol")
     print("")
 
 
@@ -55,3 +62,15 @@ def mappings():
         "For",
         "Template",
     ]
+
+
+def logger_init(name):
+    logging_yaml_path = os.path.join(file_path, "logger_setting.yaml")
+    with open(logging_yaml_path, "r") as f:
+        yaml_config = yaml.full_load(f)
+        logging.config.dictConfig(yaml_config)
+    logger = logging.getLogger(name=name)
+    return logger
+
+
+logger = logger_init("All")
