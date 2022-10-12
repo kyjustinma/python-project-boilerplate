@@ -51,13 +51,13 @@ def parse_arguments():
 
     args = parser.parse_args()
 
-    verbose = {
-        0: logging.CRITICAL,
-        1: logging.ERROR,
-        2: logging.WARNING,
-        3: logging.INFO,
-        4: logging.DEBUG,
-    }
+    # verbose = {
+    #     0: logging.CRITICAL,
+    #     1: logging.ERROR,
+    #     2: logging.WARNING,
+    #     3: logging.INFO,
+    #     4: logging.DEBUG,
+    # }
     # logging.basicConfig(
     #     format="%(asctime)s | [%(levelname)5s][%(filename)20s] | %(message)s",
     #     level=verbose[args.verbose],
