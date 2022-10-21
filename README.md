@@ -2,12 +2,11 @@
 
 ## About The Project
 
-This is a template that uses both Conda and Pre-commit, to ensure that everyone in the team has the same environment running on their device.
+This is a template that uses both Conda / Pip and Pre-commit, to ensure that everyone in the team has the same environment running on their device.
 
 Pre-commit is used to ensure that certain commit standards are enforced.
 
 ## Built With
-
 [![python][python3.8.13-shield]][python3.8.13-url]
 [![conda][conda-forge-shield]][conda-forge-url]
 
@@ -17,16 +16,14 @@ This template is primary focused on Python 3.8.13 with Anaconda (using Conda-for
 
 ## Prerequisites
 
-- Python 3.8.13
-- Anaconda
+- [Python 3.8.13][python3.8.13-url]
+- [Anaconda][conda-forge-url]
 
 ## Installation
 
 ### Windows
-Below is instruction on how to install the custom Conda Environment
-
-1. Move the requirements.txt (pip) or requirements.yaml (Conda) into `setup\requirements`
-2. Open the folder directory in CMD / Terminal and Run the batch file in setup accordingly
+1. Move **YOUR** requirements.txt (pip) or requirements.yaml (Conda) into `setup\requirements`
+2. Open the project directory in CMD / Terminal and Run the batch file in setup accordingly
 
    **Conda** install
    ```
@@ -39,22 +36,20 @@ Below is instruction on how to install the custom Conda Environment
 3. You will be prompted to enter the `<env_name>`, please select a suitable name and ensure that the environment does not already exist
 4. The environment will be installed and `pre-commit` will also be installed.
 5. The env comes with the below as standard
-   1. numpy
-   2. pandas
-   3. pycrypto
-   4. pre-commit - installed and applied after via command line
+   - numpy
+   - pandas
+   - pycrypto
+   - pre-commit - installed and applied after via command line
 
 
-### MacOS: **TODO**
+### MacOS: **SCRIPT .SH TODO**
 
 
 
-# Flow
-
-To effectively use the template with Pre-Commit you have to ensure that your custom env is setup:
+## Using Pre-Commit
+To effectively use the template with Pre-Commit you have to ensure that your custom env is setup with the [Pre-commit library](https://pre-commit.com/):
 
 1. Conda environment is active when using python
-
    **Conda** env
    ```
    conda activate <env_name>
@@ -63,7 +58,7 @@ To effectively use the template with Pre-Commit you have to ensure that your cus
    ```
    <env_name>\Scripts\activate
    ```
-2. pre-commit is installed
+2. ensure that pre-commit is installed properly on your virtual environment
     ```
     pre-commit install
     pre-commit autoupdate
@@ -71,17 +66,17 @@ To effectively use the template with Pre-Commit you have to ensure that your cus
     pre-commit install --hook-type pre-push
     ```
 
-## Working as a team with Git
-
-1. Each person should create your branch according to feature (`git checkout -b feature/AmazingNewFeature`)
-2. Add your changes (`git add -A`)
-3. Commit your Changes (`git commit -a 'prefix: informative commit message'`)
+# Working as a team with Git
+1. Each person should create their own branch according to feature (`git checkout -b feature/<AmazingNewFeature>`)
+2. Following the commit message format of  (`git commit -a '<prefix>:<informative commit message>'`)
    ```
    prefix must follow the following
    build | ci | docs | feat | fix | perf | refactor | style | test | chore | revert | bump
    ```
-4. Push to the Branch (`git push`)
-5. Open a Pull Request (PR) on GitHub to develop / main
+
+
+To learn more about the basics of git click here: <span style="font-size:2em;">[Git basics](GIT_PRECOMMIT.md)</span>
+
 
 # Roadmap
 
@@ -91,6 +86,8 @@ To effectively use the template with Pre-Commit you have to ensure that your cus
 - [ ] Add more custom utils
 - [ ] Convert to flask server
 - [ ] Add docker compile template
+- [ ] Different python versions at setup
+- [ ] ReadMe for each of the files within the template
 
 ## Bugs
 
