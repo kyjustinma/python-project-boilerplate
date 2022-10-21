@@ -30,10 +30,10 @@ Example: `feat: added fps counter to detection`
 ## Fixing conflicts
 6. Once all changes have been made make sure to get the latest from the branch you plan to merge into.
 7. `git fetch` - Gets latest branches
-8. `git switch <branch_name>` - switches branches
+8. `git switch <branch_name>` - switches branches to develop 
 9. `git pull` - gets the latest version
-10. `git checkout -b <feature/amazing-new-feature>`
-11. `git merge <branch_name>`
+10. `git switch <feature/amazing-new-feature>`
+11. `git merge <branch_name>` - merge develop
 12. Open VScode (`code .`) and fix all conflicts
 13. Repeat steps in [Making changes](#Making-changes)
 
