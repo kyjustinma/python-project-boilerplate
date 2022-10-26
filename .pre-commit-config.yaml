@@ -2,7 +2,7 @@ fail_fast: true
 repos:
   # Formatter
   - repo: https://github.com/psf/black
-    rev: 22.8.0 # or master
+    rev: 22.10.0 # or master
     hooks:
       - id: black
 
