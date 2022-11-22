@@ -9,7 +9,7 @@ cd /d %mypath%
 cd ..
 
 @REM Installs Env from requirements.yml and installs precommit
-call conda env create --name %env_name% -f  setup\requirements\requirements.yml
+call conda env create --name %env_name% python=3.8.13 -f setup\requirements\requirements.yml
 call conda activate %env_name%
 call conda install --yes -c conda-forge pre_commit
 call conda install --yes -c conda-forge commitizen

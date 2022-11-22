@@ -15,6 +15,15 @@ env_config = dotenv_values(".env")
 file_path = os.path.dirname(os.path.realpath(__file__))
 
 
+def create_data_folder():
+    data_path = os.path.join(os.path.dirname(file_path), "data")
+    sub_folders = ["logs", "csv", "images", "json", "models"]
+    sub_folder_paths = [os.path.join(data_path, folder) for folder in sub_folders]
+    for paths in sub_folder_paths:
+        if not os.path.exists(paths):
+            os.makedirs(paths)
+
+
 def logger_init(name):
     logging_yaml_path = os.path.join(file_path, "logger_setting.yaml")
     with open(logging_yaml_path, "r") as f:
@@ -30,13 +39,14 @@ def __init__():  # On initialisation
     )
     global config
     config = {}
-    ### Getting ENV from dotenv
+    create_data_folder()
     env_get("LOGGING_LEVEL", default="All", type=str)
 
     global logger
     logger = logger_init(config["LOGGING_LEVEL"])
     logger.info(f"Current logging level at {config['LOGGING_LEVEL']}")
 
+    ### Insert all other ENV variables below
     env_get("VERBOSE", default=3, type=int)
     env_get("FLASK_PORT", default=8080, type=int)
     env_get("FLASK_IP", default=get_ip(), type=str)
