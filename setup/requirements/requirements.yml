@@ -25,7 +25,6 @@ dependencies:
   - pandas
   - entrypoints
   - sqlite
-  - python=3.8
   - black
   - psutil
   - numpy
