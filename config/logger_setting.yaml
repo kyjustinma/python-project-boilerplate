@@ -68,13 +68,13 @@ loggers: # Logger levels available
   All: # All logs
     level: DEBUG
     handlers:
-      [debug_console, debug_file_handler, info_file_handler, error_file_handler]
+      [debug_console, debug_file_handler, info_file_handler,warning_file_handler, error_file_handler]
     propagate: yes
 
   Dev: # for debugging purposes
     level: INFO
     handlers:
-      [info_console, debug_file_handler, info_file_handler, error_file_handler]
+      [info_console, debug_file_handler, info_file_handler,warning_file_handler, error_file_handler]
     propagate: yes
 
   Prod: # Production use
