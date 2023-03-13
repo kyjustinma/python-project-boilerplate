@@ -24,13 +24,24 @@ def create_data_folder():
             os.makedirs(paths)
 
 
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.error("[Uncaught exception]:", exc_info=(exc_type, exc_value, exc_traceback))
+
+
 def logger_init(name):
     logging_yaml_path = os.path.join(file_path, "logger_setting.yaml")
     with open(logging_yaml_path, "r") as f:
         yaml_config = yaml.full_load(f)
         logging.config.dictConfig(yaml_config)
     logger = logging.getLogger(name=name)
+    handler = logging.StreamHandler(stream=sys.stdout)
+    logger.addHandler(handler)
+    sys.excepthook = handle_exception
     return logger
+
 
 
 def __init__():  # On initialisation
