@@ -37,8 +37,6 @@ def logger_init(name):
         yaml_config = yaml.full_load(f)
         logging.config.dictConfig(yaml_config)
     logger = logging.getLogger(name=name)
-    handler = logging.StreamHandler(stream=sys.stdout)
-    logger.addHandler(handler)
     sys.excepthook = handle_exception
     return logger
 
