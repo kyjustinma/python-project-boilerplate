@@ -7,7 +7,7 @@ conda activate $1
 sleep 1
 
 echo 'Installing requirements.txt...'
-pip install -r setup\requirements\requirements.txt
+pip install -r setup/requirements.txt
 
 pre-commit install
 pre-commit autoupdate
