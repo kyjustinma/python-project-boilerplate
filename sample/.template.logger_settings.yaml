@@ -1,4 +1,4 @@
-# V1 Changes to logs creating new 'type.log.date' files
+# V1.1 Changes to logs creating new 'type.log.date' files
 
 version: 1
 disable_existing_loggers: False
