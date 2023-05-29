@@ -10,7 +10,7 @@ cd ..
 @REM Installs Env from requirements.yml and installs precommit
 call python -m venv %env_name%
 call %env_name%\Scripts\activate
-call pip install -r setup\requirements\requirements.txt
+call pip install -r setup\requirements.txt
 
 echo Pre-commit Installing ...
 call pre-commit install
