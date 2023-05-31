@@ -70,10 +70,21 @@ def main():
 
     if "nt" in os_type:  # not windows
         ### TODO auto build env for windows
-        process = subprocess.Popen(
-            "activate tf2 && python --version", shell=True, stdout=subprocess.PIPE
-        )
+        if "conda" in env_type:
+            process = subprocess.Popen(
+                [r"setup\scripts\conda_windows_setup.bat", f"{env_name}"],
+                stdout=subprocess.PIPE,
+            )
+        elif "pip" in env_type:
+            process = subprocess.Popen(
+                [r"setup\scripts\pip_windows_setup.bat", f"{env_name}"],
+                stdout=subprocess.PIPE,
+            )
         output, error = process.communicate()
+        output = output.decode("utf-8")
+        print(output)
+        if error is not None:
+            print(f"ERROR: {error.decode('utf-8')}")
     elif "posix" in os_type:
         if "conda" in env_type:
             process = subprocess.Popen(

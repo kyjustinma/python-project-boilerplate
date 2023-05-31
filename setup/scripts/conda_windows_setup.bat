@@ -1,24 +1,23 @@
 @echo off
-cd ..
-SET mypath=%~dp0
-echo Current Path:  %mypath%
 
-set /p env_name= Enter name of conda environment:
+echo Creating Conda env name = %1
+call conda init
+call conda create --name %1 python=3.8.13
+timeout /t 2 /nobreak
 
-cd /d %mypath%
-cd ..
+call conda activate %1
+timeout /t 1 /nobreak
 
-@REM Installs Env from requirements.yml and installs precommit
-call conda create --name %env_name% python=3.8.13 --file setup\requirements\requirements.yml
-call conda activate %env_name%
-call conda install --yes -c conda-forge pre_commit
-call conda install --yes -c conda-forge commitizen
-call conda install --yes -c conda-forge python-dotenv
+echo Installing requirements.txt...
+call pip install --no-input -r setup\requirements.txt
+call pip install --no-input pre-commit
+call pip install --no-input python-dotenv
+call pip install --no-input PyYAML
+timeout /t 1 /nobreak
 
-echo Pre-commit Installing ...
 call pre-commit install
 call pre-commit autoupdate
 call pre-commit install --hook-type commit-msg pre-push
 
-echo Finished setting up conda env "%env_name%" and Pre-Commit
+echo Bash has finished setting up Conda env %1 with Pre-Commit and requirements.txt
 pause

@@ -1,11 +1,17 @@
 echo Creating Pip env name = $1
+
 python3 -m venv $1
-sleep 3
+sleep 2
+
 source $1/bin/activate
 sleep 1
 
-echo 'Installing requirements.txt...'
-pip3 install -r setup/requirements.txt
+echo Installing requirements.txt...
+pip3 install --no-input -r setup/requirements.txt
+pip3 install --no-input pre-commit
+pip3 install --no-input python-dotenv
+pip3 install --no-input PyYAML
+sleep 1
 
 pre-commit install
 pre-commit autoupdate

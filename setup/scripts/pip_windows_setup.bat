@@ -1,22 +1,23 @@
 @echo off
-SET mypath=%~dp0
-echo Current Path:  %mypath%
 
-set /p env_name= Enter name of venv environment:
+echo Creating Pip env name = %1
+call python -m venv %1
+timeout /t 2 /nobreak
 
-cd /d %mypath%
-cd ..
+call %1\Scripts\activate
+timeout /t 1 /nobreak
 
-@REM Installs Env from requirements.yml and installs precommit
-call python -m venv %env_name%
-call %env_name%\Scripts\activate
-call pip install -r setup\requirements.txt
+echo Installing requirements.txt...
+call pip install --no-input -r setup\requirements.txt
+call pip install --no-input pre-commit
+call pip install --no-input python-dotenv
+call pip install --no-input PyYAML
+timeout /t 1 /nobreak
 
-echo Pre-commit Installing ...
 call pre-commit install
 call pre-commit autoupdate
 call pre-commit install --hook-type commit-msg
 call pre-commit install --hook-type pre-push
 
-echo Finished setting up pip env "%env_name%" and Pre-Commit
-pause
+echo Bash has finished setting up Pip env %1 with Pre-Commit and requirements.txt
+pauses
