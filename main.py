@@ -5,6 +5,8 @@ import sys
 
 # from config.parse_arguments import parse_arguments
 from config.settings import config, logger
+from flask_server.flask_server import FlaskServer
+from multiprocessing import Process, Manager, Queue
 
 
 def exit_functions():
@@ -35,7 +37,23 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, exit_gracefully)
     # inputArgs = parse_arguments()
     # logger.debug(f"Logging level is at {inputArgs.verbose}")
+    task_queue = Queue(maxsize=100)  # starts a queue for the HTTP requests
+    task_list = Manager().list([])
+    task_dict = Manager().dict({})
 
+    ### Flask Server
+    flask_arguments = {
+        "task_queue": task_queue,
+        "task_dict": task_dict,
+        "task_list": task_list,
+        "flask_host": config["FLASK_IP"],
+        "flask_port": config["FLASK_PORT"],
+        "db_path": "database/data/loggerDB.db",
+    }
+    sample_flask_process = Process(
+        target=FlaskServer, kwargs=flask_arguments, name="FlaskServer", daemon=True
+    )
+    sample_flask_process.start()
     while True:
         time.sleep(1)
         print("testing")

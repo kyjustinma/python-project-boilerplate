@@ -27,7 +27,7 @@ repos:
 
   # Commit messages checks
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: 3.6.0
+    rev: 3.7.0
     hooks:
       - id: commitizen
         stages: [commit-msg]

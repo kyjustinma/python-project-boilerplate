@@ -1,6 +1,7 @@
 import os
 import glob
 import json
+import zipfile
 
 
 def get_folder_files(path, extension="*.txt", reverse=True):
@@ -32,3 +33,13 @@ def json_to_dict(path):
     with open(path) as json_file:
         json_data = json.load(json_file)
     return json_data
+
+
+def zip_folder(folder_path, output_path):
+    """Zip the contents of an entire folder (with its subfolders)"""
+    with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zipobj:
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipobj.write(file_path, file_path[len(folder_path) :])
+    return output_path

@@ -75,6 +75,9 @@ def __init__():  # On initialisation
     ### ========================================================================
     ### Add .ENV variables here (overwrite mappings)
     env_get("TEST_ENV_STRING", default="DEFAULT_SETTING", type=str)
+    env_get("HTTPS", default=0, type=int)
+    env_get("FLASK_IP", default="0.0.0.0", type=str)
+    env_get("FLASK_PORT", default=8080, type=int)
 
     ### ========================================================================
     args_to_config()
