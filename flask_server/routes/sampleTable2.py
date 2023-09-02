@@ -28,9 +28,15 @@ with app.app_context():
 
 @sampleTable2.route("/<string:uuid>", methods=["POST", "GET", "PUT", "DELETE"])
 def item_CRUD(uuid):
-    valid = check_json(
-        database["schema"][DATABASE_TABLE], request.json, return_missing=True
-    )
+    if request.method == "POST" or request.method == "PUT":
+        valid = check_json(
+            database["schema"][DATABASE_TABLE], request.json, return_missing=True
+        )
+    else:
+        valid = check_json(
+            database["schema"][DATABASE_TABLE], request.json, return_missing=True
+        )
+
     if valid == True:
         ### TODO: ADD TO Database
         return api_response(

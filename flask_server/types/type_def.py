@@ -1,3 +1,4 @@
+import collections
 from typing import Union
 from flask import jsonify
 
@@ -48,7 +49,7 @@ def api_response(status: int, msg: str = None, data: dict = None, **kwargs: str)
 
 
 def check_json(
-    keys: list, json: dict or list, return_missing: bool = False
+    keys: list or dict, json: dict or list, return_missing: bool = False
 ) -> Union[bool, list]:
     """check_json Checks if the keys match the keys in the json
 
@@ -60,7 +61,9 @@ def check_json(
     Returns:
         Union[bool, list]: Return True/False or missing keys if return_missing set to True
     """
-    if not isinstance(keys, list):  # convert keys to list if its not
+    if isinstance(keys, dict):
+        keys = list(keys.keys())
+    elif not isinstance(keys, list):  # convert keys to list if its not
         keys = [keys]
 
     if not (isinstance(json, dict) or isinstance(json, list)):  # Check if list or json

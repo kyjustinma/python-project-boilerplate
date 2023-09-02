@@ -1,11 +1,10 @@
+import logging
 import os
 import sys
-import custom_utils
+from custom_utils import path_utils
 
 from flask_server.types.type_def import check_json
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
 from config.settings import logger, config
 
 import re
@@ -24,9 +23,9 @@ from flask_limiter.util import get_remote_address
 from flask_server.types.type_def import RaiseAPIException, api_response
 
 
-# ### Logging built in the Flask server (does not log to file)
-# log = logging.getLogger("werkzeug")
-# log.setLevel(logging.WARN)
+### Logging built in the Flask server (does not log to file)
+log = logging.getLogger("werkzeug")
+log.setLevel(logging.WARN)
 
 # Local Server
 mainApp = Flask(__name__)
@@ -120,9 +119,9 @@ def log_response(response):
     return response
 
 
-@mainApp.route("/", methods=["GET", "POST"])
+@mainApp.route("/", methods=["POST", "GET", "PUT", "DELETE"])
 def status_online():
-    if request.method == "POST":
+    if request.method == "POST" or request.method == "GET":
         valid = check_json(["example", "json"], request.json, return_missing=True)
         if valid == True:
             return api_response(
@@ -142,8 +141,14 @@ def status_online():
 
 @mainApp.route("/get-logs/<string:logType>/<string:date>", methods=["POST", "GET"])
 def get_specific_log(logType, date):
-    log_type = logType
-    log_date = date
+    valid = check_json(["logType", "date"], request.json, return_missing=True)
+    if valid == True:
+        log_type = request.json["logType"]
+        date = request.json["date"]
+    else:
+        log_type = logType
+        log_date = date
+
     if log_type not in ["debug", "info", "warning", "error"]:
         return api_response(
             status=400,
@@ -177,7 +182,7 @@ def get_specific_log(logType, date):
 
 @mainApp.route("/get-all-logs", methods=["GET"])
 def get_all_logs():
-    output_zip = custom_utils.zip_folder("data/logs", "data/logs.zip")
+    output_zip = path_utils.zip_folder("data/logs", "data/logs.zip")
     return send_file(output_zip)
 
 
@@ -211,14 +216,27 @@ class FlaskServer(threading.Thread):
                     "sampleBool": bool,
                     "sampleInt": int,
                     "sampleFloat": float,
-                }
+                },
+                "sampleTable1": {
+                    "sampleString": str,
+                    "sampleTime": datetime.time,
+                    "sampleBool": bool,
+                    "sampleInt": int,
+                    "sampleFloat": float,
+                },
+                "sampleTable2": {
+                    "sampleString": str,
+                    "sampleTime": datetime.time,
+                    "sampleBool": bool,
+                    "sampleInt": int,
+                    "sampleFloat": float,
+                },
             },
         }
         self.run()
 
     def stop(self):
         self.terminate()
-        logger.info("Flask-SocketIO Terminated")
 
     def run(self):
         mainApp.config["database"] = self.database
@@ -233,7 +251,7 @@ class FlaskServer(threading.Thread):
             mainApp.register_blueprint(sampleTable1)
             mainApp.register_blueprint(sampleTable2)
 
-        logger.info(
+        print(
             f"Starting FLASK server on local network [HostIP: {self.host}:{self.port}]"
         )
         if config["HTTPS"] == True:

@@ -29,7 +29,7 @@ with app.app_context():
 @sampleTable1.route("/create", methods=["POST"])
 def create_item():
     valid = check_json(
-        database.db_schema[DATABASE_TABLE], request.json, return_missing=True
+        database["schema"][DATABASE_TABLE], request.json, return_missing=True
     )
     if valid == True:
         ### TODO: ADD TO Database
@@ -77,7 +77,7 @@ def read_item():
 @sampleTable1.route("/update", methods=["PUT"])
 def update_item():
     valid = check_json(
-        database.db_schema[DATABASE_TABLE], request.json, return_missing=True
+        database["schema"][DATABASE_TABLE], request.json, return_missing=True
     )
     if valid == True:
         uuid = request.json["uuid"]
