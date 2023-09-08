@@ -21,3 +21,5 @@ pre-commit install --hook-type pre-push
 
 
 echo Shell has finished setting up conda env $1 with Pre-Commit and requirements.txt
+
+conda activate $1

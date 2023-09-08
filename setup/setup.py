@@ -64,20 +64,18 @@ def main():
     env_type = prompt_users(args.env)  # pip / conda
     os_type = os.name  # 'nt' = windows , 'posix' = mac
     env_name = args.name
+    error = None
     print(
         f"New '{env_type}' environment will be created with name '{env_name}' on '{platform.platform()}'"
     )
 
     if "nt" in os_type:  # not windows
-        ### TODO auto build env for windows
         if "conda" in env_type:
-            process = subprocess.Popen(
-                [r"setup\scripts\conda_windows_setup.bat", f"{env_name}"],
-                stdout=subprocess.PIPE,
-            )
+            script_path = r"setup\scripts\conda_windows_setup.bat" 
         elif "pip" in env_type:
-            process = subprocess.Popen(
-                [r"setup\scripts\pip_windows_setup.bat", f"{env_name}"],
+            script_path = r"setup\scripts\pip_windows_setup.bat"
+        process = subprocess.Popen(
+                [f"{script_path}", f"{env_name}"],
                 stdout=subprocess.PIPE,
             )
         output, error = process.communicate()
@@ -87,22 +85,11 @@ def main():
             print(f"ERROR: {error.decode('utf-8')}")
     elif "posix" in os_type:
         if "conda" in env_type:
-            process = subprocess.Popen(
-                [f"source setup/scripts/conda_unix_setup.sh {env_name}"],
-                shell=True,
-                stdout=subprocess.PIPE,
-            )
+            shell_script = f"setup/scripts/conda_unix_setup.sh"
         elif "pip" in env_type:
-            process = subprocess.Popen(
-                [f"source setup/scripts/pip_unix_setup.sh {env_name}"],
-                shell=True,
-                stdout=subprocess.PIPE,
-            )
-        output, error = process.communicate()
-        output = output.decode("utf-8")
-        print(output)
-        if error is not None:
-            print(f"ERROR: {error.decode('utf-8')}")
+            shell_script = f"setup/scripts/pip_unix_setup.sh"
+        os.chmod(shell_script, 0o755)
+        process =subprocess.run(['bash', '-c', f'. {shell_script} {env_name}'])
 
     else:
         print(f"Unknown OS name {os_type}:{platform.platform()}")

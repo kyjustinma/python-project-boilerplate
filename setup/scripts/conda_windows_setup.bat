@@ -20,4 +20,5 @@ call pre-commit autoupdate
 call pre-commit install --hook-type commit-msg pre-push
 
 echo Bash has finished setting up Conda env %1 with Pre-Commit and requirements.txt
-pause
+
+call conda activate %1

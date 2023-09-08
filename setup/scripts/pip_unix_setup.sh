@@ -18,5 +18,6 @@ pre-commit autoupdate
 pre-commit install --hook-type commit-msg
 pre-commit install --hook-type pre-push
 
-
 echo Shell has finished setting up conda env $1 and Pre-Commit and requirements.txt
+
+source $1/bin/activate
