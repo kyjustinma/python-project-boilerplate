@@ -7,11 +7,13 @@ import socket
 import logging
 import logging.config
 import yaml
+from .loggingHandler import PrefixedTimedRotatingFileHandler
 from .parse_arguments import parse_arguments
 
 from dotenv import dotenv_values
 
 env_config = dotenv_values(".env")
+sample_env_config = dotenv_values(".sample.env")
 file_path = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -24,7 +26,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
 def create_data_folder():
     data_path = os.path.join(os.path.dirname(file_path), "data")
-    sub_folders = ["logs", "csv", "images", "json", "models"]
+    sub_folders = ["logs", "csv", "images", "json", "models", "database"]
     sub_folder_paths = [os.path.join(data_path, folder) for folder in sub_folders]
     for paths in sub_folder_paths:
         if not os.path.exists(paths):
@@ -32,7 +34,8 @@ def create_data_folder():
 
 
 def logger_init(name):
-    logging_yaml_path = os.path.join(file_path, "logger_setting.yaml")
+    logging_yaml_path = os.path.join(file_path, "prefixed_logger_setting.yaml")
+    # logging_yaml_path = os.path.join(file_path, "logger_setting.yaml")
     with open(logging_yaml_path, "r") as f:
         yaml_config = yaml.full_load(f)
         logging.config.dictConfig(yaml_config)
@@ -61,25 +64,25 @@ def args_to_config():
 
 def __init__():  # On initialisation
     print(
-        "\n\n ======================================== config.settings.py Setup ========================================"
+        "\n\n\n\n ======================================== config.settings.py Setup ============================================"
     )
     # Create global variables if needed
     global config
     config = {}
     create_data_folder()  # creates the data folders for logging
-    env_get("LOGGING_LEVEL", default="All", type=str)
+    env_get("LOGGING_LEVEL", default="ALL", type=str)
     global logger
     logger = logger_init(config["LOGGING_LEVEL"])
-    logger.info(f"Current logging level at {config['LOGGING_LEVEL']}")
+    logger.info(f"Current logging level set to '{config['LOGGING_LEVEL']}'")
     mappings()
     ### ========================================================================
     ### Add .ENV variables here (overwrite mappings)
     env_get("TEST_ENV_STRING", default="DEFAULT_SETTING", type=str)
 
     ### ========================================================================
-    args_to_config()
+    args_to_config()  # Arguments overwrites all Environment variables
     print(
-        " ======================================== Settings complete ========================================\n\n"
+        " ======================================== Settings complete ====================================================\n\n\n\n"
     )
 
 
@@ -89,11 +92,12 @@ def env_get(variable_name: str, default: str, type: str = "string") -> str or fl
             config[variable_name] = type(env_config[variable_name])
         else:
             config[variable_name] = env_config[variable_name]
+        logger.info(f"[.env] '{variable_name}' = '{config[variable_name]}'")
     except Exception as e:
         if variable_name == "LOGGING_LEVEL":
             print(f"\t\t[.env] Missing '{variable_name}' setting to '{default}'")
         else:
-            logger.warning(f"[.env] Missing '{variable_name}' setting to '{default}'")
+            logger.warning(f"[.env] MISSING '{variable_name}' setting to '{default}'")
         if type != "string":
             config[variable_name] = type(default)
         else:

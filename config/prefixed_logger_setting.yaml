@@ -26,7 +26,7 @@ handlers:
     level: WARNING
     formatter: simple
     stream: ext://sys.stdout
-  error_console:
+  ERROR_console:
     class: logging.StreamHandler
     level: ERROR
     formatter: simple
@@ -34,7 +34,7 @@ handlers:
 
   # Handle the logging into files
   debug_file_handler:
-    class: logging.handlers.TimedRotatingFileHandler
+    class: config.loggingHandler.PrefixedTimedRotatingFileHandler
     level: DEBUG
     formatter: detailed
     filename: ./data/logs/debug.log
@@ -43,7 +43,7 @@ handlers:
     backupCount: 31
     encoding: utf8
   info_file_handler:
-    class: logging.handlers.TimedRotatingFileHandler
+    class: config.loggingHandler.PrefixedTimedRotatingFileHandler
     level: INFO
     formatter: simple
     filename: ./data/logs/info.log
@@ -52,7 +52,7 @@ handlers:
     backupCount: 31
     encoding: utf8
   warning_file_handler:
-    class: logging.handlers.TimedRotatingFileHandler
+    class: config.loggingHandler.PrefixedTimedRotatingFileHandler
     level: WARNING
     formatter: simple
     filename: ./data/logs/warning.log
@@ -61,7 +61,7 @@ handlers:
     backupCount: 31
     encoding: utf8
   error_file_handler:
-    class: logging.handlers.TimedRotatingFileHandler
+    class: config.loggingHandler.PrefixedTimedRotatingFileHandler
     level: ERROR
     formatter: simple
     filename: ./data/logs/error.log
@@ -71,7 +71,7 @@ handlers:
     encoding: utf8
 
 loggers: # Logger levels available
-  All: # All logs
+  ALL: # All logs
     level: DEBUG
     handlers:
       [
@@ -83,7 +83,7 @@ loggers: # Logger levels available
       ]
     propagate: no
 
-  Dev: # for debugging purposes
+  DEV: # for debugging purposes
     level: INFO
     handlers:
       [
@@ -95,7 +95,7 @@ loggers: # Logger levels available
       ]
     propagate: no
 
-  Prod: # Production use
+  PROD: # Production use
     level: WARNING
     handlers:
       [

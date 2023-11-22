@@ -5,6 +5,7 @@ import sys
 
 # from config.parse_arguments import parse_arguments
 from config.settings import config, logger
+import config.parse_arguments as argParse
 
 
 def exit_functions():
@@ -33,9 +34,11 @@ def exit_gracefully(signum, frame):
 if __name__ == "__main__":
     original_sigint = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, exit_gracefully)
-    # inputArgs = parse_arguments()
-    # logger.debug(f"Logging level is at {inputArgs.verbose}")
+    inputArgs = argParse.parse_arguments()
 
     while True:
         time.sleep(1)
-        print("testing")
+        logger.debug("Debug")
+        logger.info("Info")
+        logger.warning("Warn")
+        logger.error("Error")
