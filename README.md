@@ -112,6 +112,38 @@ To effectively use the template with Pre-Commit you have to ensure that your cus
 
 To learn more about the basics of git click here: <span style="font-size:2em;">[Git basics](GIT_PRECOMMIT.md)</span>
 
+# Folder Structure
+
+```
+📦python-project-boilerplate
+ ┣ 📂config
+ ┃ ┣ 📜logger_setting.yaml          - YAML for regular logger
+ ┃ ┣ 📜logging_utils.py
+ ┃ ┣ 📜parse_arguments.py           - Running script Argument manager
+ ┃ ┣ 📜prefixed_logger_setting.yaml - Prefix date (<yyyy-mm-dd>.debug.log)
+ ┃ ┣ 📜settings.py                  - Load all boilerplate settings
+ ┃ ┗ 📜__init__.py
+ ┣ 📂custom_types                   - Place All Data Types / Classes here
+ ┣ 📂custom_utils                   - Place useful utility functions here
+ ┣ 📂data
+ ┃ ┣ 📂csv
+ ┃ ┣ 📂database
+ ┃ ┣ 📂images
+ ┃ ┣ 📂json
+ ┃ ┣ 📂logs
+ ┃ ┗ 📂models                       - Machine Learning Models / Other files
+ ┣ 📂environments                   - Place .env files for different environments
+ ┣ 📂sample                         - Other Samples
+ ┣ 📂setup                          - Setup python virtual environment scripts
+ ┣ 📜.gitignore                     - Files to ignore in git
+ ┣ 📜.pre-commit-config.yaml        - Pre-Commit settings
+ ┣ 📜.sample.env                    - Example .env to use
+ ┣ 📜main.py                        - Main Python script
+ ┣ 📜LICENSE
+ ┣ 📜GIT_PRECOMMIT.md               - PLEASE READ ME :/
+ ┗ 📜README.md                      - READ ME :D
+```
+
 # Roadmap
 
 ## Features
