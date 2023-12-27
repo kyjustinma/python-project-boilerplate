@@ -79,9 +79,7 @@ def load_dot_env(args: argparse.Namespace):
     return dotenv_config
 
 
-def env_get(
-    variable_name: str, dotenv_config: dict, default: str, type: str = str
-) -> None:
+def env_get(variable_name: str, default: str, type: str = str) -> None:
     """env_get
     Get values from the .ENV file
     Args:
@@ -89,7 +87,7 @@ def env_get(
         default (str): default value if not defined
         type (str, optional): Expected type for the .ENV variable. Defaults to string.
     """
-    env_value = dotenv_config.get(variable_name, None)
+    env_value = env_config.get(variable_name, None)
     if env_value is not None:
         env_config[variable_name] = env_value
     else:
@@ -115,7 +113,7 @@ def env_get(
             )
 
 
-def global_variable_mappings(config: dict):
+def global_variable_mappings(env_config: dict):
     """mappings
 
 
@@ -123,24 +121,13 @@ def global_variable_mappings(config: dict):
         config (dict): _description_
     """
     mapping = {0: "Text0", 1: "Text1", 2: "Text2", 3: "Text3"}
-    config["TEST_MAPPING"] = mapping
-    config["WHEEL_CMD"] = [
+    env_config["TEST_MAPPING"] = mapping
+    env_config["WHEEL_CMD"] = [
         "List",
         "Example",
         "For",
         "Template",
     ]
-
-
-def args_to_config(config: dict) -> argparse.Namespace:
-    """args_to_config _summary_
-
-    Args:
-        config (dict): _description_
-    """
-    args = parse_arguments()
-    config.update(vars(args))
-    return args
 
 
 # ==============================================================================================================
@@ -159,26 +146,27 @@ def __init__():  # On initialisation
     print(
         "\n\n\n\n======================================== config.settings.py Setup ============================================"
     )
+    create_data_folder()  # Creates the data folders for logging
+
     # Create global variables if needed
     global logger
     global env_config
     env_config = {}
 
-    create_data_folder()  # creates the data folders for logging
-    args = args_to_config(env_config)  # Arguments overwrites all Environment variables
-    dotenv = load_dot_env(args=args)
+    args = parse_arguments()  # Get input arguments
+    env_config = load_dot_env(args=args)
 
-    env_get("LOGGING_LEVEL", dotenv, default="ALL", type=str)
+    env_get("LOGGING_LEVEL", default="ALL", type=str)
     logger = logger_init(env_config["LOGGING_LEVEL"])
     logger.info(f"Current logging level set to '{env_config['LOGGING_LEVEL']}'")
     global_variable_mappings(env_config)
     ### ========================================================================
     ### Add .ENV variables here (overwrite mappings)
-    env_get("TEST_ENV_STRING", dotenv, default="DEFAULT_SETTING", type=str)
-    env_get("TEST_ENV_STRING2", dotenv, default="DEFAULT_TEST_ENV_STRING2", type=str)
+    env_get("TEST_ENV_STRING", default="DEFAULT_SETTING", type=str)
+    env_get("TEST_ENV_STRING2", default="DEFAULT_TEST_ENV_STRING2", type=str)
 
     ### ========================================================================
-    args_to_config(env_config)  # Arguments overwrites all Environment variables
+    env_config.update(vars(args))  # Arguments overwrites all Environment variables
     print(
         "======================================== Settings complete ====================================================\n"
     )
