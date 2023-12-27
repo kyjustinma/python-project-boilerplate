@@ -5,6 +5,14 @@ def parse_arguments():
     """Read arguments from a command line."""
     parser = argparse.ArgumentParser(description="Arguments get parsed via --commands")
     parser.add_argument(
+        "--env",
+        metavar="--environment",
+        type=str,
+        required=False,
+        default=None,
+        help="Environment selected if given",
+    )
+    parser.add_argument(
         "--verbose",
         metavar="--verbosity",
         type=int,
