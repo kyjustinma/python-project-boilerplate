@@ -32,5 +32,3 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    print(f"Current Directory {args.d}")
-    print(f"Script Directory {args.s}")

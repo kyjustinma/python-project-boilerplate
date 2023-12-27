@@ -4,7 +4,7 @@ import signal
 import sys
 
 # from config.parse_arguments import parse_arguments
-from config.settings import config, logger
+from config.settings import env_config, logger
 import config.parse_arguments as argParse
 
 
@@ -23,7 +23,7 @@ def exit_gracefully(signum, frame):
             os._exit(0)
 
     except KeyboardInterrupt:
-        print("Keyboard interrupt, quitting service")
+        logger.error("Keyboard interrupt, quitting service")
         exit_functions()
         os._exit(1)
 
@@ -35,6 +35,8 @@ if __name__ == "__main__":
     original_sigint = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, exit_gracefully)
     inputArgs = argParse.parse_arguments()
+    for key, value in env_config.items():
+        logger.debug(key, value)
 
     while True:
         time.sleep(1)
