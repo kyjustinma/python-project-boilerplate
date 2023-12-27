@@ -33,6 +33,11 @@ def parse_arguments():
         default="venv",
         help="Tell the setup the name of the environment name",
     )
+    parser.add_argument(
+        "--python3",
+        action="store_true",
+        help="[Unix] Use 'python3' or 'python' when creating venv environment in ",
+    )
     args = parser.parse_args()
     return args
 
@@ -65,32 +70,36 @@ def main():
     os_type = os.name  # 'nt' = windows , 'posix' = mac
     env_name = args.name
     error = None
+    unix_python_version = "python"
+    if args.python3 is True:
+        unix_python_version = "python3"
+
     print(
         f"New '{env_type}' environment will be created with name '{env_name}' on '{platform.platform()}'"
     )
 
     if "nt" in os_type:  # not windows
+        # Default to use pip
+        script_path = r"setup\scripts\pip_windows_setup.bat"
         if "conda" in env_type:
-            script_path = r"setup\scripts\conda_windows_setup.bat" 
-        elif "pip" in env_type:
-            script_path = r"setup\scripts\pip_windows_setup.bat"
+            script_path = r"setup\scripts\conda_windows_setup.bat"
         process = subprocess.Popen(
-                [f"{script_path}", f"{env_name}"],
-                stdout=subprocess.PIPE,
-            )
+            [f"{script_path}", f"{env_name}"],
+            stdout=subprocess.PIPE,
+        )
         output, error = process.communicate()
         output = output.decode("utf-8")
         print(output)
         if error is not None:
             print(f"ERROR: {error.decode('utf-8')}")
     elif "posix" in os_type:
+        shell_script = f"setup/scripts/pip_unix_setup.sh"
         if "conda" in env_type:
             shell_script = f"setup/scripts/conda_unix_setup.sh"
-        elif "pip" in env_type:
-            shell_script = f"setup/scripts/pip_unix_setup.sh"
         os.chmod(shell_script, 0o755)
-        process =subprocess.run(['bash', '-c', f'. {shell_script} {env_name}'])
-
+        process = subprocess.run(
+            ["bash", "-c", f". {shell_script} {env_name} {unix_python_version}"]
+        )
     else:
         print(f"Unknown OS name {os_type}:{platform.platform()}")
 

@@ -1,6 +1,6 @@
-echo Creating Pip env name = $1
+echo Creating Pip env name = $1 using $2
 
-python3 -m venv $1
+$2 -m venv $1 # python -m venv venv
 sleep 2
 
 source $1/bin/activate

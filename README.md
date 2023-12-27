@@ -23,34 +23,22 @@ This template is primary focused on Python 3.10.13 with Anaconda (using Conda-fo
 ## Setup Perquisite
 
 1. Move **YOUR** _requirements.txt_ (pip) or _requirements.yaml_ (Conda) into `setup/requirements`
-2. Open the project directory in Command Line / Terminal and Run the batch file in setup accordingly
+2. Open the project directory in Command Line / Terminal and Run the python script file in ./setup accordingly
 
-### Windows:
+The terminal installation code via python script is show below for each operating system.
 
-**Pip3** install
-
-```
-setup\conda_setup_venv.bat
-```
-
-**Conda** install
+### Windows
 
 ```
-setup\pip_setup_venv.bat
+python setup\setup.py
 ```
 
-### MacOS / Linux:
+### MacOS / Linux
 
-**Pip3** install
-
-```
-setup/conda_setup_venv.bat
-```
-
-**Conda** install
+`--python3` flag is used if you want to use `python3` venv else the default console `python` is used
 
 ```
-setup/pip_setup_venv.bat
+python setup/setup.py --python3
 ```
 
 1. You will be prompted to enter the `<env_name>`, please select a suitable name and ensure that the environment does not already exist
@@ -93,7 +81,7 @@ To effectively use the template with Pre-Commit you have to ensure that your cus
    ...
    ```
 
-3. If precommit is installed then run
+3. If pre-commit is installed then run
    ```
    pre-commit install
    pre-commit autoupdate

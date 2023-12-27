@@ -1,7 +1,7 @@
 echo Creating Conda env name = $1
 conda init
 
-conda create --yes --name $1 python=3.8.13
+conda create --yes --name $1 python=3.10.13
 sleep 2
 
 conda activate $1
