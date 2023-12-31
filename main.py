@@ -3,7 +3,7 @@ import time
 import signal
 import sys
 
-from config.settings import env_config, logger
+from config.settings import ENV_CONFIG, logger
 
 
 def exit_functions():
@@ -32,7 +32,7 @@ def exit_gracefully(signum, frame):
 if __name__ == "__main__":
     original_sigint = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, exit_gracefully)
-    for key, value in env_config.items():
+    for key, value in ENV_CONFIG.items():
         logger.info(f"{key}|{value}")
 
     while True:

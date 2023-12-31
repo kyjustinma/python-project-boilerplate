@@ -12,6 +12,7 @@ import logging.config
 from dotenv import dotenv_values
 from .logging_utils import ColouredLoggingFormatter
 from .parse_arguments import parse_arguments
+from types import MappingProxyType
 
 
 file_path = os.path.dirname(os.path.realpath(__file__))
@@ -63,8 +64,8 @@ def logger_init(name):
 # ==============================================================================================================
 def load_dot_env(args: argparse.Namespace):
     func_name = sys._getframe(0).f_code.co_name
+    dot_env_path = os.path.normpath(f"environments/{args.env}.env")
     try:
-        dot_env_path = os.path.normpath(f"environments/{args.env}.env")
         if os.path.exists(dot_env_path):
             dotenv_config = dotenv_values(dot_env_path)
             print(
@@ -79,7 +80,7 @@ def load_dot_env(args: argparse.Namespace):
     return dotenv_config
 
 
-def env_get(variable_name: str, default: str, type: str = str) -> None:
+def env_get(variable_name: str, default: str, variable_type: type = str) -> None:
     """env_get
     Get values from the .ENV file
     Args:
@@ -87,29 +88,29 @@ def env_get(variable_name: str, default: str, type: str = str) -> None:
         default (str): default value if not defined
         type (str, optional): Expected type for the .ENV variable. Defaults to string.
     """
-    env_value = env_config.get(variable_name, None)
+    env_value = ENV_CONFIG.get(variable_name, None)
     if env_value is not None:
-        env_config[variable_name] = env_value
+        ENV_CONFIG[variable_name] = env_value  # type: ignore as we are setting the variables
     else:
-        env_config[variable_name] = type(default)
+        ENV_CONFIG[variable_name] = variable_type(default)  # type: ignore as we are setting the variables
 
     try:
         if env_value is not None:
             logger.info(
-                f"[.env] Setting '{variable_name}' to '{env_config[variable_name]}'"
+                f"[.env] Setting '{variable_name}' to '{ENV_CONFIG[variable_name]}'"
             )
         else:
             logger.error(
-                f"[.env] MISSING '{variable_name}' - Setting to '{env_config[variable_name]}'"
+                f"[.env] MISSING '{variable_name}' - Setting to '{ENV_CONFIG[variable_name]}'"
             )
     except Exception as e:
         if env_value is not None:
             print(
-                f"\t\t\t\t   [.env] | Setting '{variable_name}' to '{env_config[variable_name]}'"
+                f"\t\t\t\t   [.env] | Setting '{variable_name}' to '{ENV_CONFIG[variable_name]}'"
             )
         else:
             print(
-                f"\t\t\t\t   [.env] | MISSING '{variable_name}' - Setting to '{env_config[variable_name]}'"
+                f"\t\t\t\t   [.env] | MISSING '{variable_name}' - Setting to '{ENV_CONFIG[variable_name]}'"
             )
 
 
@@ -148,25 +149,25 @@ def __init__():  # On initialisation
     )
     create_data_folder()  # Creates the data folders for logging
 
-    # Create global variables if needed
-    global logger
-    global env_config
     env_config = {}
+    global logger
+    global ENV_CONFIG
 
     args = parse_arguments()  # Get input arguments
-    env_config = load_dot_env(args=args)
+    ENV_CONFIG = load_dot_env(args=args)
 
-    env_get("LOGGING_LEVEL", default="ALL", type=str)
-    logger = logger_init(env_config["LOGGING_LEVEL"])
-    logger.info(f"Current logging level set to '{env_config['LOGGING_LEVEL']}'")
-    global_variable_mappings(env_config)
+    env_get("LOGGING_LEVEL", default="ALL", variable_type=str)
+    logger = logger_init(ENV_CONFIG["LOGGING_LEVEL"])
+    logger.info(f"Current logging level set to '{ENV_CONFIG['LOGGING_LEVEL']}'")
+    global_variable_mappings(ENV_CONFIG)
     ### ========================================================================
     ### Add .ENV variables here (overwrite mappings)
-    env_get("TEST_ENV_STRING", default="DEFAULT_SETTING", type=str)
-    env_get("TEST_ENV_STRING2", default="DEFAULT_TEST_ENV_STRING2", type=str)
+    env_get("TEST_ENV_STRING", default="DEFAULT_SETTING", variable_type=str)
+    env_get("TEST_ENV_STRING2", default="DEFAULT_TEST_ENV_STRING2", variable_type=str)
 
     ### ========================================================================
-    env_config.update(vars(args))  # Arguments overwrites all Environment variables
+    ENV_CONFIG.update(vars(args))  # Arguments overwrites all Environment variables
+    ENV_CONFIG = MappingProxyType(ENV_CONFIG)
     print(
         "======================================== Settings complete ====================================================\n"
     )
