@@ -1,26 +1,23 @@
 import logging
 import os
-import sys
-from custom_utils import path_utils
-
-from flask_server.types.type_def import check_json
-
-from config.settings import logger, config
-
-import re
 import json
-import jwt
-from datetime import datetime
 import threading
 import queue
+
+from config.settings import logger, ENV_CONFIG
 from multiprocessing.managers import DictProxy, ListProxy
 
 
-from flask import Flask, request, send_file
-from flask_socketio import SocketIO, emit
+from flask import Flask, request
+from flask_socketio import SocketIO
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_server.types.type_def import RaiseAPIException, api_response
+from flask_server.types.type_def import (
+    RaiseAPIException,
+    api_response,
+    check_json_keys,
+    validate_request_is_json,
+)
 
 
 ### Logging built in the Flask server (does not log to file)
@@ -120,70 +117,15 @@ def log_response(response):
 
 
 @mainApp.route("/", methods=["POST", "GET", "PUT", "DELETE"])
+@validate_request_is_json
 def status_online():
-    if request.method == "POST" or request.method == "GET":
-        valid = check_json(["example", "json"], request.json, return_missing=True)
-        if valid == True:
-            return api_response(
-                status=200,
-                message="Optional message here",
-                data={"key": "value"},
-            )
-        else:
-            raise RaiseAPIException(
-                "Missing Field", f"You are missing {valid} field", status_code=400
-            )
-
-    raise RaiseAPIException(
-        "Invalid Method", "The Method you are calling does not exist", status_code=404
+    if request.method == "POST":
+        valid = check_json_keys(["example", "json"], request.json, return_missing=True)
+    return api_response(
+        status=200,
+        message="Optional message here",
+        data={"key": "value"},
     )
-
-
-@mainApp.route("/get-logs/<string:logType>/<string:date>", methods=["POST", "GET"])
-def get_specific_log(logType, date):
-    valid = check_json(["logType", "date"], request.json, return_missing=True)
-    if valid == True:
-        log_type = request.json["logType"]
-        date = request.json["date"]
-    else:
-        log_type = logType
-        log_date = date
-
-    if log_type not in ["debug", "info", "warning", "error"]:
-        return api_response(
-            status=400,
-            message="Valid log types are, [ 'debug' , 'info' , 'warning' , 'error' ]",
-            data=request.json,
-        )
-    elif re.match(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", log_date) is None:
-        return api_response(
-            status=400,
-            message="Date needs to be in 'YYYY-MM-DD' format",
-            data=request.json,
-        )
-    now = datetime.now()
-    date_str = now.strftime("%Y-%m-%d")
-    if log_date == date_str:
-        log_to_take = os.path.abspath(os.path.join("data/logs", f"{log_type}.log"))
-    else:
-        log_to_take = os.path.abspath(
-            os.path.join("data/logs", f"{log_type}.log.{log_date}")
-        )
-
-    if os.path.exists(log_to_take):
-        return send_file(log_to_take)
-    else:
-        return api_response(
-            status=400,
-            message="Log does not exist",
-            data=request.json,
-        )
-
-
-@mainApp.route("/get-all-logs", methods=["GET"])
-def get_all_logs():
-    output_zip = path_utils.zip_folder("data/logs", "data/logs.zip")
-    return send_file(output_zip)
 
 
 ### ==================== SOCKETIO ========================================
@@ -194,67 +136,39 @@ class FlaskServer(threading.Thread):
         self,
         flask_host: str,
         flask_port: int,
-        db_path: str,
+        https: bool,
         task_queue: queue.Queue,
         task_dict: DictProxy,
         task_list: ListProxy,
-        debugging: bool = False,
+        debugging: bool = False,  # FALSE when in process
     ) -> None:
         threading.Thread.__init__(self)
         self.host = flask_host
         self.port = flask_port
+        self.https = https
         self.debugging = debugging
         self.task_queue = task_queue
         self.task_dict = task_dict
         self.task_list = task_list
-        self.database = {
-            "object": None,
-            "schema": {
-                "sampleSchema": {
-                    "sampleString": str,
-                    "sampleTime": datetime.time,
-                    "sampleBool": bool,
-                    "sampleInt": int,
-                    "sampleFloat": float,
-                },
-                "sampleTable1": {
-                    "sampleString": str,
-                    "sampleTime": datetime.time,
-                    "sampleBool": bool,
-                    "sampleInt": int,
-                    "sampleFloat": float,
-                },
-                "sampleTable2": {
-                    "sampleString": str,
-                    "sampleTime": datetime.time,
-                    "sampleBool": bool,
-                    "sampleInt": int,
-                    "sampleFloat": float,
-                },
-            },
-        }
         self.run()
 
     def stop(self):
         self.terminate()
 
     def run(self):
-        mainApp.config["database"] = self.database
         mainApp.config["task_queue"] = self.task_queue
         mainApp.config["task_dict"] = self.task_dict
         mainApp.config["task_list"] = self.task_list
         mainApp.config["settings"] = {"status": True, "message": None}
         with mainApp.app_context():
-            from flask_server.routes.sampleTable1 import sampleTable1
-            from flask_server.routes.sampleTable2 import sampleTable2
+            from flask_server.routes.sampleRoute import sampleRoute
 
-            mainApp.register_blueprint(sampleTable1)
-            mainApp.register_blueprint(sampleTable2)
+            mainApp.register_blueprint(sampleRoute)
 
         print(
             f"Starting FLASK server on local network [HostIP: {self.host}:{self.port}]"
         )
-        if config["HTTPS"] == True:
+        if self.https == True:
             ssl_cert_path = "ssl-cert"
             certfile = os.path.join(ssl_cert_path, "cert.pem")
             keyfile = os.path.join(ssl_cert_path, "key_unencrypted.pem")
@@ -263,6 +177,7 @@ class FlaskServer(threading.Thread):
                 host=self.host,
                 port=self.port,
                 ssl_context=(certfile, keyfile),
+                debug=self.debugging,
                 allow_unsafe_werkzeug=True,
             )  # Socket + Flask
         else:
@@ -270,5 +185,6 @@ class FlaskServer(threading.Thread):
                 mainApp,
                 host=self.host,
                 port=self.port,
+                debug=self.debugging,
                 allow_unsafe_werkzeug=True,
             )

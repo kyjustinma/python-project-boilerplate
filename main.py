@@ -2,8 +2,10 @@ import os
 import time
 import signal
 import sys
+from multiprocessing import Process
 
 from config.settings import ENV_CONFIG, logger
+from flask_process import FlaskServer
 
 
 def exit_functions():
@@ -44,19 +46,27 @@ if __name__ == "__main__":
 
     ### Flask Server
     flask_arguments = {
+        "flask_host": ENV_CONFIG["FLASK_IP"],
+        "flask_port": ENV_CONFIG["FLASK_PORT"],
+        "https": ENV_CONFIG["HTTPS"],
         "task_queue": task_queue,
         "task_dict": task_dict,
         "task_list": task_list,
-        "flask_host": config["FLASK_IP"],
-        "flask_port": config["FLASK_PORT"],
-        "db_path": "database/data/loggerDB.db",
     }
     sample_flask_process = (
         Process(  # Config will display twice as it will be loaded by this process
             target=FlaskServer, kwargs=flask_arguments, name="FlaskServer", daemon=True
         )
-    )
-    sample_flask_process.start()
+    ).start
+    # FlaskServer(
+    #     flask_host=ENV_CONFIG["FLASK_IP"],
+    #     flask_port=ENV_CONFIG["FLASK_PORT"],
+    #     https=ENV_CONFIG["HTTPS"],
+    #     task_queue=task_queue,
+    #     task_dict=task_dict,
+    #     task_list=task_list,
+    #     debugging=True,
+    # )
     while True:
         time.sleep(1)
         logger.debug("Debug")

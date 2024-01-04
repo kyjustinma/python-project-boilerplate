@@ -3,10 +3,10 @@
 echo Creating Conda env name = %1
 call conda init
 call conda create --name %1 python=3.10.13
-timeout /t 2 /nobreak
+timeout 2 /nobreak
 
 call conda activate %1
-timeout /t 1 /nobreak
+timeout 1 /nobreak
 
 echo Installing requirements.txt...
 call pip install --no-input -r setup\requirements.txt

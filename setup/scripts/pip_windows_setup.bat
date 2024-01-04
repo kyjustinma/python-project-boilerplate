@@ -5,14 +5,14 @@ call python -m venv %1
 timeout /t 2 /nobreak
 
 call %1\Scripts\activate
-timeout /t 1 /nobreak
+timeout 1 /nobreak
 
 echo Installing requirements.txt...
 call pip install --no-input -r setup\requirements.txt
 call pip install --no-input pre-commit
 call pip install --no-input python-dotenv
 call pip install --no-input PyYAML
-timeout /t 1 /nobreak
+timeout 1 /nobreak
 
 call pre-commit install
 call pre-commit autoupdate

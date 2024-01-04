@@ -162,6 +162,10 @@ def __init__():  # On initialisation
     global_variable_mappings(ENV_CONFIG)
     ### ========================================================================
     ### Add .ENV variables here (overwrite mappings)
+    env_get("FLASK_IP", default="0.0.0.0", variable_type=str)
+    env_get("FLASK_PORT", default=5000, variable_type=int)
+    env_get("HTTPS", default=0, variable_type=bool)
+
     env_get("TEST_ENV_STRING", default="DEFAULT_SETTING", variable_type=str)
     env_get("TEST_ENV_STRING2", default="DEFAULT_TEST_ENV_STRING2", variable_type=str)
 
