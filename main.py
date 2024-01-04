@@ -3,10 +3,7 @@ import time
 import signal
 import sys
 
-# from config.parse_arguments import parse_arguments
-from config.settings import config, logger
-from flask_process import FlaskServer
-from multiprocessing import Process, Manager, Queue
+from config.settings import ENV_CONFIG, logger
 
 
 def exit_functions():
@@ -23,7 +20,7 @@ def exit_gracefully(signum, frame):
             exit_functions()
             os._exit(0)
 
-    except KeyboardInterrupt:
+    except KeyboardInterrupt or EOFError:
         print("Keyboard interrupt, quitting service")
         exit_functions()
         os._exit(1)
@@ -35,8 +32,8 @@ def exit_gracefully(signum, frame):
 if __name__ == "__main__":
     original_sigint = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, exit_gracefully)
-    # inputArgs = parse_arguments()
-    # logger.debug(f"Logging level is at {inputArgs.verbose}")
+    for key, value in ENV_CONFIG.items():
+        logger.info(f"{key}|{value}")
 
     # task_queue = Queue(maxsize=100)
     # task_list = Manager().list([])
@@ -62,4 +59,7 @@ if __name__ == "__main__":
     sample_flask_process.start()
     while True:
         time.sleep(1)
-        print("testing")
+        logger.debug("Debug")
+        logger.info("Info")
+        logger.warning("Warn")
+        logger.error("Error")

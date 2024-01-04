@@ -2,7 +2,7 @@
 
 echo Creating Conda env name = %1
 call conda init
-call conda create --name %1 python=3.8.13
+call conda create --name %1 python=3.10.13
 timeout /t 2 /nobreak
 
 call conda activate %1
@@ -20,4 +20,5 @@ call pre-commit autoupdate
 call pre-commit install --hook-type commit-msg pre-push
 
 echo Bash has finished setting up Conda env %1 with Pre-Commit and requirements.txt
-pause
+
+call conda activate %1

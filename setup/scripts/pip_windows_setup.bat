@@ -21,3 +21,5 @@ call pre-commit install --hook-type pre-push
 
 echo Bash has finished setting up Pip env %1 with Pre-Commit and requirements.txt
 pauses
+
+call %1\Scripts\activate

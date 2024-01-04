@@ -30,5 +30,3 @@ sample_dict["string"] = "hello"
 # Returns suggestive keys
 
 new_sample_dict = DotDict(sample_dict)
-print(new_sample_dict.string)
-# "hello"

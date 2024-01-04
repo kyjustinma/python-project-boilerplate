@@ -1,6 +1,6 @@
-echo Creating Pip env name = $1
+echo Creating Pip env name = $1 using $2
 
-python3 -m venv $1
+$2 -m venv $1 # python -m venv venv
 sleep 2
 
 source $1/bin/activate
@@ -18,5 +18,6 @@ pre-commit autoupdate
 pre-commit install --hook-type commit-msg
 pre-commit install --hook-type pre-push
 
-
 echo Shell has finished setting up conda env $1 and Pre-Commit and requirements.txt
+
+source $1/bin/activate
