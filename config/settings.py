@@ -53,8 +53,10 @@ def logger_init(name):
         )
     )
     for handler in logger.handlers[:]:
-        logger.removeHandler(handler)  # Remove the yaml logger (no colour)
-    logger.addHandler(coloured_handler)  # Add colour logger
+        # Removes the current console handler replaces with coloured
+        if "console" in handler.name:
+            logger.removeHandler(handler)  # Remove the yaml logger (no colour)
+            logger.addHandler(coloured_handler)  # Add colour logger
     sys.excepthook = handle_exception  # Exception handler
     return logger
 
