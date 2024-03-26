@@ -55,7 +55,7 @@ def logger_init(name):
     )
     for handler in logger.handlers[:]:
         # Removes the current console handler replaces with coloured
-        if "console" in handler.name:
+        if "console" in str(handler.name):
             logger.removeHandler(handler)  # Remove the yaml logger (no colour)
     logger.addHandler(coloured_handler)  # Add colour logger
     sys.excepthook = handle_exception  # Exception handler
@@ -125,9 +125,23 @@ def env_get(variable_name: str, default: str, variable_type: type = str) -> None
     ENV_CONFIG[variable_name] = env_value
     message = f"[.env] Setting '{variable_name}' to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
     try:
-        logger.info(message)
-    except Exception:
-        print("\t\t\t\t   ", message)
+        if env_value is not None:
+            logger.info(
+                f"[.env] Setting '{variable_name}' to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
+            )
+        else:
+            logger.warning(
+                f"[.env] MISSING '{variable_name}' - Setting to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
+            )
+    except Exception as e:
+        if env_value is not None:
+            print(
+                f"\t\t\t\t   [.env] | Setting '{variable_name}' to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
+            )
+        else:
+            print(
+                f"\t\t\t\t   [.env] | MISSING '{variable_name}' - Setting to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
+            )
 
 
 def global_variable_mappings(env_config: dict):
