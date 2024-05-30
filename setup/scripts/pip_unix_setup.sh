@@ -1,4 +1,4 @@
-echo Creating Pip env name = $1 using $2
+echo "Creating Pip env name = '$1' using \$2"
 
 $2 -m venv $1 # python -m venv venv
 sleep 2

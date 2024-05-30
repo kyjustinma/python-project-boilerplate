@@ -2,7 +2,7 @@ fail_fast: true
 repos:
   # Formatter
   - repo: https://github.com/psf/black
-    rev: 23.12.1 # or master
+    rev: 24.3.0 # or master
     hooks:
       - id: black
 
@@ -31,7 +31,7 @@ repos:
 
   # Commit messages checks
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.13.0
+    rev: v3.20.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
