@@ -54,11 +54,16 @@ def logger_init(name):
             logger_name=name,
         )
     )
+    coloured_handler.setLevel(logger.level)
+    global STANDARD_CONSOLE_HANDLER
     for handler in logger.handlers[:]:
+        print("handler", handler.name)
         # Removes the current console handler replaces with coloured
         if "console" in str(handler.name):
+            STANDARD_CONSOLE_HANDLER = handler
             logger.removeHandler(handler)  # Remove the yaml logger (no colour)
-    logger.addHandler(coloured_handler)  # Add colour logger
+            coloured_handler.name = handler.name
+            logger.addHandler(coloured_handler)  # Add colour logger
     sys.excepthook = handle_exception  # Exception handler
     return logger
 

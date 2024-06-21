@@ -1,40 +1,52 @@
+import multiprocessing
 import os
+import subprocess
 import time
 import signal
 import sys
-
-from config.settings import ENV_CONFIG, logger
-
-
-def exit_functions():
-    print("Goodbye cruel world")
-
-
-def exit_gracefully(signum, frame):
-    # restore the original signal handler as otherwise evil things will happen
-    # in raw_input when CTRL+C is pressed, and our signal handler is not re-entrant
-    signal.signal(signal.SIGINT, original_sigint)
-    try:
-        if input("\n Do you really want to quit? (y/n) >").lower().startswith("y"):
-            logger.warning("Application ended gracefully")
-            exit_functions()
-            os._exit(0)
-
-    except KeyboardInterrupt or EOFError:
-        print("Keyboard interrupt, quitting service")
-        exit_functions()
-        os._exit(1)
-
-    # restore the exit gracefully handler here
-    signal.signal(signal.SIGINT, exit_gracefully)
+import config
+from datetime import datetime
+from multi_process import hello_worker
+import logging
 
 
 if __name__ == "__main__":
-    original_sigint = signal.getsignal(signal.SIGINT)
-    signal.signal(signal.SIGINT, exit_gracefully)
+    from config.settings import ENV_CONFIG, logger, STANDARD_CONSOLE_HANDLER
+
     for key, value in ENV_CONFIG.items():
         logger.info(f"{key}|{value}")
 
+    # Create a new handler with the same configuration
+    mp1_logger = logging.getLogger("MP1")
+    mp1_logger.setLevel(logger.level)
+    for handler in logger.handlers:
+        print(handler)
+        if "console" in handler.name:
+            mp1_logger.handlers.append(handler)
+        if (
+            isinstance(handler, logging.StreamHandler)
+            and handler.level == mp1_logger.level
+        ):
+            logger_formatter = handler.formatter
+
+    temp_mp1_handler = [
+        config.logging_utils.PrefixedTimedRotatingFileHandler(
+            filename="./data/logs/.mp1.log",
+            when="midnight",
+            backupCount=7,
+        )
+    ]
+    for mp1_file_handlers in temp_mp1_handler:
+        mp1_file_handlers.setLevel(mp1_logger.level)
+        mp1_file_handlers.setFormatter(STANDARD_CONSOLE_HANDLER.formatter)
+        mp1_logger.handlers.append(mp1_file_handlers)
+
+    for handler in mp1_logger.handlers:
+        print("MP1 ", handler)
+
+    arg1 = 20
+    p = multiprocessing.Process(target=hello_worker, args=(mp1_logger.handlers, arg1))
+    p.start()
     while True:
         time.sleep(1)
         logger.debug("Debug")
@@ -42,3 +54,4 @@ if __name__ == "__main__":
         logger.warning("Warn")
         logger.error("Error")
         logger.critical("Critical")
+        # mp1_logger.critical('Hello world')
