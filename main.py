@@ -41,3 +41,4 @@ if __name__ == "__main__":
         logger.info("Info")
         logger.warning("Warn")
         logger.error("Error")
+        logger.critical("Critical")

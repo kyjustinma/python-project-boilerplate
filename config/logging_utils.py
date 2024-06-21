@@ -34,6 +34,7 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
             delay,
             utc,
         )
+        self.getFilesToDelete()
 
     def __get_date_prefix(self) -> str:
         return time.strftime("%Y-%m-%d")
@@ -86,6 +87,56 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
         self.baseFilename = self.__generate_filename(self.baseFilename)
         self.current_date = time.strftime("%Y-%m-%d")
         self.stream = self._open()
+        if self.backupCount > 0:
+            for s in self.getFilesToDelete():
+                print(f"Removing files {s}")
+                os.remove(s)
+
+    def getFilesToDelete(self):
+        """
+        Determine the files to delete when rolling over.
+
+        More specific than the earlier method, which just used glob.glob().
+        """
+        dirName, baseName = os.path.split(self.baseFilename)
+        fileNames = os.listdir(dirName)
+        result = []
+        # See bpo-44753: Don't use the extension when computing the prefix.
+        n, e = os.path.splitext(baseName)
+        prefix = n + "."
+        plen = len(prefix)
+
+        date, log_type, file_end = baseName.split(".")
+        for fileName in fileNames:
+            if self.namer is None:
+                # Our files will always start with baseName
+                if not fileName.startswith(baseName):
+                    continue
+            else:
+                # Our files could be just about anything after custom naming, but
+                # likely candidates are of the form
+                # foo.log.DATETIME_SUFFIX or foo.DATETIME_SUFFIX.log
+                if (
+                    not fileName.startswith(baseName)
+                    and fileName.endswith(e)
+                    and len(fileName) > (plen + 1)
+                    and not fileName[plen + 1].isdigit()
+                ):
+                    continue
+
+            if log_type in fileName:
+                # Correct log type
+                parts = fileName.split(".")
+                for part in parts:
+                    if self.extMatch.match(part):
+                        result.append(os.path.join(dirName, fileName))
+                        break
+        if len(result) < self.backupCount:
+            result = []
+        else:
+            result.sort()
+            result = result[: len(result) - self.backupCount]
+        return result
 
 
 class ColouredLoggingFormatter(logging.Formatter):
@@ -99,6 +150,7 @@ class ColouredLoggingFormatter(logging.Formatter):
     yellow = "\x1b[33;20m"
     red = "\x1b[31;20m"
     bold_red = "\x1b[31;1m"
+    red_bg = "\x1b[41;20m"
     reset = "\x1b[0m"
 
     def __find_formatter_type(self, yaml_config: dict, logger_name: str) -> str:
@@ -155,7 +207,9 @@ class ColouredLoggingFormatter(logging.Formatter):
         Returns:
             str: prefix for log level colour
         """
-        if levelno >= logging.ERROR:
+        if levelno >= logging.CRITICAL:
+            return self.red_bg
+        elif levelno >= logging.ERROR:
             return self.bold_red
         elif levelno >= logging.WARNING:
             return self.yellow

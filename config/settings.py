@@ -1,6 +1,7 @@
 """
 This file is used to store any global variables such as file paths etc
 """
+
 import argparse
 import os
 import sys
@@ -83,7 +84,7 @@ def load_dot_env(args: argparse.Namespace):
     return dotenv_config
 
 
-def env_get(variable_name: str, default: str, variable_type: type = str) -> None:
+def env_get(variable_name: str, variable_type: type = str, default: str = None) -> None:
     """env_get
     Get values from the .ENV file
     Args:
@@ -91,6 +92,12 @@ def env_get(variable_name: str, default: str, variable_type: type = str) -> None
         default (str): default value if not defined
         type (str, optional): Expected type for the .ENV variable. Defaults to string.
     """
+    env_value = ENV_CONFIG.get(variable_name, None)  # Get config if it exists
+    if env_value == None and default is None:
+        raise Exception(
+            f"Failed to start program as .ENV Variable [{variable_name}] was not defined and no default value was given."
+        )
+
     if not isinstance(default, variable_type):  # Default is incorrect type
         message = f"\n\n .[.env] Variable ({variable_name}) Default Value ({default}) does not match Default Type ({variable_type})\n"
         try:
@@ -99,7 +106,6 @@ def env_get(variable_name: str, default: str, variable_type: type = str) -> None
             print(message)
         raise Exception(message)
 
-    env_value = ENV_CONFIG.get(variable_name, None)  # Get config if it exists
     if env_value is None:
         ENV_CONFIG[variable_name] = default
         message = f"[.env] MISSING '{variable_name}' - Setting to default {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
@@ -192,7 +198,7 @@ def __init__():  # On initialisation
     ### ========================================================================
     ### Add .ENV variables here (overwrite mappings)
     env_get("TEST_ENV_STRING", default="DEFAULT_SETTING", variable_type=str)
-    env_get("TEST_ENV_STRING2", default="DEFAULT_TEST_ENV_STRING2", variable_type=str)
+    env_get("TEST_ENV_STRING2", default="test", variable_type=str)
 
     ### ========================================================================
     ENV_CONFIG.update(vars(args))  # Arguments overwrites all Environment variables
