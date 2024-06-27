@@ -1,12 +1,14 @@
 """
 This file is used to store any global variables such as file paths etc
 """
+
 import argparse
 import os
 import sys
 import logging
 import yaml
 import socket
+import ast
 
 import logging.config
 from dotenv import dotenv_values
@@ -23,7 +25,7 @@ file_path = os.path.dirname(os.path.realpath(__file__))
 # ==============================================================================================================
 def create_data_folder():
     data_path = os.path.join(os.path.dirname(file_path), "data")
-    sub_folders = ["logs", "csv", "images", "json", "models", "database"]
+    sub_folders = ["config", "logs", "csv", "images", "json", "models", "database"]
     sub_folder_paths = [os.path.join(data_path, folder) for folder in sub_folders]
     for paths in sub_folder_paths:
         if not os.path.exists(paths):
@@ -53,7 +55,9 @@ def logger_init(name):
         )
     )
     for handler in logger.handlers[:]:
-        logger.removeHandler(handler)  # Remove the yaml logger (no colour)
+        # Removes the current console handler replaces with coloured
+        if "console" in str(handler.name):
+            logger.removeHandler(handler)  # Remove the yaml logger (no colour)
     logger.addHandler(coloured_handler)  # Add colour logger
     sys.excepthook = handle_exception  # Exception handler
     return logger
@@ -80,7 +84,7 @@ def load_dot_env(args: argparse.Namespace):
     return dotenv_config
 
 
-def env_get(variable_name: str, default: str, variable_type: type = str) -> None:
+def env_get(variable_name: str, variable_type: type = str, default: str = None) -> None:
     """env_get
     Get values from the .ENV file
     Args:
@@ -88,29 +92,61 @@ def env_get(variable_name: str, default: str, variable_type: type = str) -> None
         default (str): default value if not defined
         type (str, optional): Expected type for the .ENV variable. Defaults to string.
     """
-    env_value = ENV_CONFIG.get(variable_name, None)
-    if env_value is not None:
-        ENV_CONFIG[variable_name] = env_value  # type: ignore as we are setting the variables
-    else:
-        ENV_CONFIG[variable_name] = variable_type(default)  # type: ignore as we are setting the variables
+    env_value = ENV_CONFIG.get(variable_name, None)  # Get config if it exists
+    if env_value == None and default is None:
+        raise Exception(
+            f"Failed to start program as .ENV Variable [{variable_name}] was not defined and no default value was given."
+        )
 
+    if not isinstance(default, variable_type):  # Default is incorrect type
+        message = f"\n\n .[.env] Variable ({variable_name}) Default Value ({default}) does not match Default Type ({variable_type})\n"
+        try:
+            logger.error(message)
+        except Exception:
+            print(message)
+        raise Exception(message)
+
+    if env_value is None:
+        ENV_CONFIG[variable_name] = default
+        message = f"[.env] MISSING '{variable_name}' - Setting to default {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
+        try:
+            logger.error(message)  # Using Default
+        except Exception:
+            print("\t\t\t\t   ", message)
+        return
+
+    if not isinstance(env_value, variable_type):
+        # try:
+        env_value = ast.literal_eval(env_value)
+        # except Exception:
+        if not isinstance(env_value, variable_type):
+            ENV_CONFIG[variable_name] = default
+            message = f"[.env] '{variable_name}' has incorrect Type ({variable_type}) - Setting to default {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
+            try:
+                logger.error(message)
+            except Exception:
+                print("\t\t\t\t   ", message)
+            return
+
+    ENV_CONFIG[variable_name] = env_value
+    message = f"[.env] Setting '{variable_name}' to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
     try:
         if env_value is not None:
             logger.info(
-                f"[.env] Setting '{variable_name}' to '{ENV_CONFIG[variable_name]}'"
+                f"[.env] Setting '{variable_name}' to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
             )
         else:
-            logger.error(
-                f"[.env] MISSING '{variable_name}' - Setting to '{ENV_CONFIG[variable_name]}'"
+            logger.warning(
+                f"[.env] MISSING '{variable_name}' - Setting to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
             )
     except Exception as e:
         if env_value is not None:
             print(
-                f"\t\t\t\t   [.env] | Setting '{variable_name}' to '{ENV_CONFIG[variable_name]}'"
+                f"\t\t\t\t   [.env] | Setting '{variable_name}' to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
             )
         else:
             print(
-                f"\t\t\t\t   [.env] | MISSING '{variable_name}' - Setting to '{ENV_CONFIG[variable_name]}'"
+                f"\t\t\t\t   [.env] | MISSING '{variable_name}' - Setting to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
             )
 
 
@@ -149,7 +185,6 @@ def __init__():  # On initialisation
     )
     create_data_folder()  # Creates the data folders for logging
 
-    env_config = {}
     global logger
     global ENV_CONFIG
 
@@ -167,7 +202,7 @@ def __init__():  # On initialisation
     env_get("HTTPS", default=0, variable_type=bool)
 
     env_get("TEST_ENV_STRING", default="DEFAULT_SETTING", variable_type=str)
-    env_get("TEST_ENV_STRING2", default="DEFAULT_TEST_ENV_STRING2", variable_type=str)
+    env_get("TEST_ENV_STRING2", default="test", variable_type=str)
 
     ### ========================================================================
     ENV_CONFIG.update(vars(args))  # Arguments overwrites all Environment variables
