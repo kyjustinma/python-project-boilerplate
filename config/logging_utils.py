@@ -2,6 +2,7 @@ import os
 import time
 import logging
 import logging.handlers
+from typing import Literal
 
 
 class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
@@ -146,56 +147,62 @@ class ColouredLoggingFormatter(logging.Formatter):
     """
 
     ### Setting the colours
+    reset = "\x1b[0m"
+
     grey = "\x1b[38;20m"
     yellow = "\x1b[33;20m"
     red = "\x1b[31;20m"
     bold_red = "\x1b[31;1m"
     red_bg = "\x1b[41;20m"
-    reset = "\x1b[0m"
 
-    def __find_formatter_type(self, yaml_config: dict, logger_name: str) -> str:
-        """__find_formatter_type
-            Finds the format of the current logger based on the .yaml file ("default", "simple", "detailed")
-
-        Args:
-            root_logger (logging.Logger): Current Logger pulled from the yaml file
-            yaml_config (dict): yaml config that was loaded
-
-        Returns:
-            str: root_logger format type
-        """
-
-        # Default format is below
-        format_string = (
-            r"%(asctime)s | [%(levelname)7s][%(module)s - %(funcName)s] | %(message)s"
-        )
-        try:
-            logger_level = yaml_config["loggers"][logger_name]["level"]
-            console_handlers = [
-                yaml_handlers
-                for yaml_handlers in yaml_config["handlers"]
-                if "console" in yaml_handlers.lower()
-            ]
-            for valid_handlers in console_handlers:
-                if yaml_config["handlers"][valid_handlers]["level"] == logger_level:
-                    formatter_type = yaml_config["handlers"][valid_handlers][
-                        "formatter"
-                    ]
-                    return yaml_config["formatters"][formatter_type]["format"]
-        except Exception as e:
-            print(f"Failed to find default format string, {e}")
-        return format_string
+    black = "\x1b[30m"
+    blue = "\x1b[34m"
+    magenta = "\x1b[35m"
+    cyan = "\x1b[36m"
+    white = "\x1b[37m"
 
     def __init__(
         self,
-        yaml_config: dict,
-        logger_name: str,
+        fmt: str,
+        colour_level: Literal[None, "Level", "Line"] = False,
+        colour_logger_name: tuple = None,
+        level_colour_mapping: dict = {},
     ):
-        """__init__
+        """__init__ _summary_
+
         Args:
-            format: The format the logger should output in
+            fmt (str): Format for the coloured formatter
+            colour_level (bool, optional): Colour the logger level. Defaults to False.
+            colour_logger_name (tuple, optional): ("logger_name":<ASCII_Colour> | None (for blue)). Defaults to None.
+            level_colour_mapping (dict, optional): Colour mapping to the ASCII colour. Defaults to {}.
         """
-        super().__init__(self.__find_formatter_type(yaml_config, logger_name))
+        super().__init__(fmt)
+        self.colour_level = colour_level
+        self.level_colour_mapping = level_colour_mapping
+        self.colour_logger_name = colour_logger_name
+        if self.colour_logger_name is not None:
+            self.logger_name = self.colour_logger_name[0]
+            try:
+                if self.colour_logger_name[1] is None:
+                    self.logger_name_colour = self.blue
+                else:
+                    self.logger_name_colour = self.colour_logger_name[1]
+            except Exception as e:
+                self.logger_name_colour = self.blue
+
+        self.level_colour_mapping.update(
+            {
+                logging.CRITICAL: self.red_bg,
+                logging.ERROR: self.bold_red,
+                logging.WARNING: self.yellow,
+                logging.INFO: self.yellow,
+                logging.DEBUG: self.grey,
+                logging.NOTSET: self.grey,
+                0: self.grey,
+                "default": self.grey,
+                "reset": self.reset,
+            }
+        )
 
     def _get_colored_format(self, levelno: int) -> str:
         """_get_colored_format
@@ -207,14 +214,20 @@ class ColouredLoggingFormatter(logging.Formatter):
         Returns:
             str: prefix for log level colour
         """
-        if levelno >= logging.CRITICAL:
-            return self.red_bg
-        elif levelno >= logging.ERROR:
-            return self.bold_red
-        elif levelno >= logging.WARNING:
-            return self.yellow
-        else:
-            return self.grey
+        return self.level_colour_mapping[levelno]
+
+    def __color_format_section(self, section: str, colour: str) -> str:
+        """__color_format_section
+            formats a section of string according to the levelno
+
+        Args:
+            section:(str): section of string
+            levelno (int): log level
+
+        Returns:
+            str: section with colour format
+        """
+        return colour + section + self.level_colour_mapping["reset"]
 
     def format(self, record: logging.LogRecord) -> str:
         """format
@@ -225,9 +238,26 @@ class ColouredLoggingFormatter(logging.Formatter):
         Returns:
             str: Returns the string to be outputted in console
         """
-        log_message = (
-            self._get_colored_format(record.levelno)
-            + super().format(record)
-            + self.reset
-        )
+        if self.colour_level == "Level":
+            log_message = super().format(record)
+            log_message = log_message.replace(
+                record.levelname,
+                self.__color_format_section(
+                    record.levelname, self.level_colour_mapping[record.levelno]
+                ),
+                1,
+            )
+        if self.colour_level == "Line":
+            log_message = (
+                self._get_colored_format(record.levelno)
+                + super().format(record)
+                + self.reset
+            )
+        if self.colour_logger_name is not None:
+            log_message = log_message.replace(
+                self.logger_name,
+                self.__color_format_section(self.logger_name, self.logger_name_colour),
+                1,
+            )
+
         return log_message

@@ -1,9 +1,14 @@
+import logging.handlers
 import os
 import time
 import signal
 import sys
 
-from config.settings import ENV_CONFIG, logger
+from config.settings import ENV_CONFIG, logger, getCustomLogger
+import logging
+
+SLIDING_DOOR = "SD01"
+sd_logger = getCustomLogger(SLIDING_DOOR)
 
 
 def exit_functions():

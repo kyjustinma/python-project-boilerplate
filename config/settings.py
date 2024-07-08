@@ -6,13 +6,14 @@ import argparse
 import os
 import sys
 import logging
+from typing import Literal
 import yaml
 import socket
 import ast
 
 import logging.config
 from dotenv import dotenv_values
-from .logging_utils import ColouredLoggingFormatter
+from .logging_utils import ColouredLoggingFormatter, PrefixedTimedRotatingFileHandler
 from .parse_arguments import parse_arguments
 from types import MappingProxyType
 
@@ -39,28 +40,126 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     logger.error("[Uncaught exception]:", exc_info=(exc_type, exc_value, exc_traceback))
 
 
-def logger_init(name):
+def __get_yaml_format(yaml_dict: dict, logger_name="ALL") -> str:
+    yaml_format = None
+    for valid_handlers in [
+        yaml_handlers
+        for yaml_handlers in yaml_dict["handlers"]
+        if "console" in yaml_handlers.lower()
+    ]:
+        if (
+            yaml_dict["handlers"][valid_handlers]["level"]
+            == yaml_dict["loggers"][logger_name]["level"]
+        ):
+            formatter_type = yaml_dict["handlers"][valid_handlers]["formatter"]
+            yaml_format = yaml_dict["formatters"][formatter_type]["format"]
+            break
+    return yaml_format
+
+
+def logger_init(
+    name: str,
+    colour_logging_level: Literal[None, "Level", "Line"] = None,
+    overwrite_root: bool = False,
+):
     logging_yaml_path = os.path.join(file_path, "prefixed_logger_setting.yaml")
     # logging_yaml_path = os.path.join(file_path, "logger_setting.yaml")
     with open(logging_yaml_path, "r") as f:
         yaml_config = yaml.full_load(f)
-        logging.config.dictConfig(config=yaml_config)
 
+    logging.config.dictConfig(config=yaml_config)
     logger = logging.getLogger(name=name)
-    coloured_handler = logging.StreamHandler()
-    coloured_handler.setFormatter(
-        ColouredLoggingFormatter(
-            yaml_config=yaml_config,
-            logger_name=name,
-        )
-    )
-    for handler in logger.handlers[:]:
-        # Removes the current console handler replaces with coloured
-        if "console" in str(handler.name):
-            logger.removeHandler(handler)  # Remove the yaml logger (no colour)
-    logger.addHandler(coloured_handler)  # Add colour logger
+
+    if colour_logging_level is not None:
+        coloured_handler_fmt = __get_yaml_format(yaml_config, "ALL")
+        if coloured_handler_fmt is not None:
+            coloured_handler = logging.StreamHandler()
+            coloured_handler.name = "coloured_console"
+            coloured_handler.setFormatter(
+                ColouredLoggingFormatter(
+                    fmt=coloured_handler_fmt, colour_level=colour_logging_level
+                )
+            )
+            for handler in logger.handlers[:]:
+                # Removes the current console handler replaces with coloured
+                if "console" in str(handler.name):
+                    logger.removeHandler(handler)  # Remove the yaml logger (no colour)
+            logger.addHandler(coloured_handler)  # Add colour logger
+
     sys.excepthook = handle_exception  # Exception handler
+
+    if overwrite_root:
+        for handlers in logger.handlers:
+            logging.root.addHandler(handlers)
     return logger
+
+
+def getCustomLogger(logger_name: str, text_colour: str = None):
+    level_converter = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
+
+    def adjust_logger_fmt(fmt: str) -> str:
+        logger_name_fmt = fmt
+        if " | " in fmt:
+            logger_name_fmt = fmt.replace(" | ", f" | [{logger_name}]", 1)
+        return logger_name_fmt
+
+    logging_yaml_path = os.path.join(file_path, "prefixed_logger_setting.yaml")
+    with open(logging_yaml_path, "r") as f:
+        yaml_config = yaml.full_load(f)
+
+    custom_logger = logging.getLogger(logger_name)
+    for handler_type in [
+        "debug_file_handler",
+        "info_file_handler",
+        "warning_file_handler",
+        "error_file_handler",
+        "critical_file_handler",
+    ]:
+        file_type = handler_type.split("_file_handler")[0]
+        handler_formatter = yaml_config["handlers"][handler_type]["formatter"]
+        handler_level = yaml_config["handlers"][handler_type]["level"]
+        PreFixTimeHandlerArgs = {
+            "filename": yaml_config["handlers"][handler_type]["filename"].replace(
+                f"{file_type}.log", logger_name + f"_{file_type}.log"
+            ),
+            "when": yaml_config["handlers"][handler_type]["when"],
+            "interval": yaml_config["handlers"][handler_type]["interval"],
+            "backupCount": yaml_config["handlers"][handler_type]["backupCount"],
+            "encoding": yaml_config["handlers"][handler_type]["encoding"],
+        }
+        file_handler = PrefixedTimedRotatingFileHandler(**PreFixTimeHandlerArgs)
+        file_handler.setFormatter(
+            logging.Formatter(
+                adjust_logger_fmt(
+                    yaml_config["formatters"][handler_formatter]["format"]
+                )
+            )
+        )
+        file_handler.setLevel(level_converter[handler_level])
+        file_handler.name = handler_type
+        custom_logger.addHandler(file_handler)
+
+    coloured_handler_fmt = adjust_logger_fmt(
+        __get_yaml_format(yaml_config, ENV_CONFIG["LOGGING_LEVEL"])
+    )
+    if coloured_handler_fmt is not None:
+        coloured_handler = logging.StreamHandler()
+        coloured_handler.name = "coloured_console"
+        coloured_handler.setFormatter(
+            ColouredLoggingFormatter(
+                fmt=coloured_handler_fmt,
+                colour_level=True,
+                colour_logger_name=(logger_name, text_colour),
+            )
+        )
+        custom_logger.addHandler(coloured_handler)  # Add colour logger
+    return custom_logger
 
 
 # ==============================================================================================================
@@ -192,7 +291,9 @@ def __init__():  # On initialisation
     ENV_CONFIG = load_dot_env(args=args)
 
     env_get("LOGGING_LEVEL", default="ALL", variable_type=str)
-    logger = logger_init(ENV_CONFIG["LOGGING_LEVEL"])
+    logger = logger_init(
+        ENV_CONFIG["LOGGING_LEVEL"], colour_logging_level="Level", overwrite_root=True
+    )
     logger.info(f"Current logging level set to '{ENV_CONFIG['LOGGING_LEVEL']}'")
     global_variable_mappings(ENV_CONFIG)
     ### ========================================================================
