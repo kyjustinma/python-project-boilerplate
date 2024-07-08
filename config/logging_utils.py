@@ -195,7 +195,7 @@ class ColouredLoggingFormatter(logging.Formatter):
                 logging.CRITICAL: self.red_bg,
                 logging.ERROR: self.bold_red,
                 logging.WARNING: self.yellow,
-                logging.INFO: self.yellow,
+                logging.INFO: self.grey,
                 logging.DEBUG: self.grey,
                 logging.NOTSET: self.grey,
                 0: self.grey,
@@ -238,6 +238,7 @@ class ColouredLoggingFormatter(logging.Formatter):
         Returns:
             str: Returns the string to be outputted in console
         """
+        log_message = super().format(record)
         if self.colour_level == "Level":
             log_message = super().format(record)
             log_message = log_message.replace(
@@ -247,13 +248,13 @@ class ColouredLoggingFormatter(logging.Formatter):
                 ),
                 1,
             )
-        if self.colour_level == "Line":
+        elif self.colour_level == "Line":
             log_message = (
                 self._get_colored_format(record.levelno)
                 + super().format(record)
                 + self.reset
             )
-        if self.colour_logger_name is not None:
+        elif self.colour_logger_name is not None:
             log_message = log_message.replace(
                 self.logger_name,
                 self.__color_format_section(self.logger_name, self.logger_name_colour),

@@ -1,14 +1,11 @@
-import logging.handlers
 import os
 import time
 import signal
-import sys
 
 from config.settings import ENV_CONFIG, logger, getCustomLogger
-import logging
 
-SLIDING_DOOR = "SD01"
-sd_logger = getCustomLogger(SLIDING_DOOR)
+
+customLogger = getCustomLogger("customLogger", colour_logging_level="Level")
 
 
 def exit_functions():
@@ -47,3 +44,9 @@ if __name__ == "__main__":
         logger.warning("Warn")
         logger.error("Error")
         logger.critical("Critical")
+
+        customLogger.debug("Custom Debug")
+        customLogger.info("Custom Info")
+        customLogger.warning("Custom Warn")
+        customLogger.error("Custom Error")
+        customLogger.critical("Custom Critical")

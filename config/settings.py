@@ -37,7 +37,9 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
-    logger.error("[Uncaught exception]:", exc_info=(exc_type, exc_value, exc_traceback))
+    logger.critical(
+        "[Uncaught exception]:", exc_info=(exc_type, exc_value, exc_traceback)
+    )
 
 
 def __get_yaml_format(yaml_dict: dict, logger_name="ALL") -> str:
@@ -60,7 +62,6 @@ def __get_yaml_format(yaml_dict: dict, logger_name="ALL") -> str:
 def logger_init(
     name: str,
     colour_logging_level: Literal[None, "Level", "Line"] = None,
-    overwrite_root: bool = False,
 ):
     logging_yaml_path = os.path.join(file_path, "prefixed_logger_setting.yaml")
     # logging_yaml_path = os.path.join(file_path, "logger_setting.yaml")
@@ -69,9 +70,10 @@ def logger_init(
 
     logging.config.dictConfig(config=yaml_config)
     logger = logging.getLogger(name=name)
+    logging.root.setLevel(logger.level)
 
     if colour_logging_level is not None:
-        coloured_handler_fmt = __get_yaml_format(yaml_config, "ALL")
+        coloured_handler_fmt = __get_yaml_format(yaml_config, name)
         if coloured_handler_fmt is not None:
             coloured_handler = logging.StreamHandler()
             coloured_handler.name = "coloured_console"
@@ -87,14 +89,15 @@ def logger_init(
             logger.addHandler(coloured_handler)  # Add colour logger
 
     sys.excepthook = handle_exception  # Exception handler
-
-    if overwrite_root:
-        for handlers in logger.handlers:
-            logging.root.addHandler(handlers)
     return logger
 
 
-def getCustomLogger(logger_name: str, text_colour: str = None):
+def getCustomLogger(
+    logger_name: str,
+    logging_level=logging.DEBUG,
+    colour_logging_level: Literal[None, "Level", "Line"] = "Level",
+    text_colour: str = None,
+):
     level_converter = {
         "DEBUG": logging.DEBUG,
         "INFO": logging.INFO,
@@ -145,20 +148,30 @@ def getCustomLogger(logger_name: str, text_colour: str = None):
         file_handler.name = handler_type
         custom_logger.addHandler(file_handler)
 
-    coloured_handler_fmt = adjust_logger_fmt(
-        __get_yaml_format(yaml_config, ENV_CONFIG["LOGGING_LEVEL"])
-    )
-    if coloured_handler_fmt is not None:
-        coloured_handler = logging.StreamHandler()
+    coloured_handler = logging.StreamHandler(sys.stdout)
+    if colour_logging_level is not None:
+        coloured_handler_fmt = adjust_logger_fmt(
+            __get_yaml_format(yaml_config, ENV_CONFIG["LOGGING_LEVEL"])
+        )
+        coloured_handler = logging.StreamHandler(sys.stdout)
+        coloured_handler.setLevel(logging_level)
         coloured_handler.name = "coloured_console"
         coloured_handler.setFormatter(
             ColouredLoggingFormatter(
                 fmt=coloured_handler_fmt,
-                colour_level=True,
+                colour_level=colour_logging_level,
                 colour_logger_name=(logger_name, text_colour),
             )
         )
-        custom_logger.addHandler(coloured_handler)  # Add colour logger
+    else:
+        coloured_handler.setFormatter(
+            logging.Formatter(
+                adjust_logger_fmt(
+                    yaml_config["formatters"][handler_formatter]["format"]
+                )
+            )
+        )
+    custom_logger.addHandler(coloured_handler)  # Add colour logger
     return custom_logger
 
 
@@ -291,9 +304,7 @@ def __init__():  # On initialisation
     ENV_CONFIG = load_dot_env(args=args)
 
     env_get("LOGGING_LEVEL", default="ALL", variable_type=str)
-    logger = logger_init(
-        ENV_CONFIG["LOGGING_LEVEL"], colour_logging_level="Level", overwrite_root=True
-    )
+    logger = logger_init(ENV_CONFIG["LOGGING_LEVEL"], colour_logging_level="Level")
     logger.info(f"Current logging level set to '{ENV_CONFIG['LOGGING_LEVEL']}'")
     global_variable_mappings(ENV_CONFIG)
     ### ========================================================================
