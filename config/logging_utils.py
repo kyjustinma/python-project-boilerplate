@@ -3,6 +3,7 @@ import time
 import logging
 import logging.handlers
 from typing import Literal
+from enum import Enum
 
 
 class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
@@ -140,31 +141,33 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
         return result
 
 
+class LoggingColours(str, Enum):
+    ### Setting the colours
+    RESET: str = "\x1b[0m"
+
+    GREY: str = "\x1b[38;20m"
+    YELLOW: str = "\x1b[33;20m"
+    RED = "\x1b[31;20m"
+    BOLD_RED = "\x1b[31;1m"
+    RED_BG = "\x1b[41;20m"
+
+    BLACK = "\x1b[30m"
+    BLUE = "\x1b[34m"
+    MAGENTA = "\x1b[35m"
+    CYAN = "\x1b[36m"
+    WHITE = "\x1b[37m"
+
+
 class ColouredLoggingFormatter(logging.Formatter):
     """ColouredLoggingFormatter
     Based on logging.Formatter class
     Changes the colour of the Critical, Error and Warning logs
     """
 
-    ### Setting the colours
-    reset = "\x1b[0m"
-
-    grey = "\x1b[38;20m"
-    yellow = "\x1b[33;20m"
-    red = "\x1b[31;20m"
-    bold_red = "\x1b[31;1m"
-    red_bg = "\x1b[41;20m"
-
-    black = "\x1b[30m"
-    blue = "\x1b[34m"
-    magenta = "\x1b[35m"
-    cyan = "\x1b[36m"
-    white = "\x1b[37m"
-
     def __init__(
         self,
         fmt: str,
-        colour_level: Literal[None, "Level", "Line"] = False,
+        colour_level: Literal[None, "Level", "Line"] = "Level",
         colour_logger_name: tuple = None,
         level_colour_mapping: dict = {},
     ):
@@ -184,23 +187,23 @@ class ColouredLoggingFormatter(logging.Formatter):
             self.logger_name = self.colour_logger_name[0]
             try:
                 if self.colour_logger_name[1] is None:
-                    self.logger_name_colour = self.blue
+                    self.logger_name_colour = LoggingColours.WHITE
                 else:
                     self.logger_name_colour = self.colour_logger_name[1]
             except Exception as e:
-                self.logger_name_colour = self.blue
+                self.logger_name_colour = LoggingColours.WHITE
 
         self.level_colour_mapping.update(
             {
-                logging.CRITICAL: self.red_bg,
-                logging.ERROR: self.bold_red,
-                logging.WARNING: self.yellow,
-                logging.INFO: self.grey,
-                logging.DEBUG: self.grey,
-                logging.NOTSET: self.grey,
-                0: self.grey,
-                "default": self.grey,
-                "reset": self.reset,
+                logging.CRITICAL: LoggingColours.RED_BG,
+                logging.ERROR: LoggingColours.BOLD_RED,
+                logging.WARNING: LoggingColours.YELLOW,
+                logging.INFO: LoggingColours.GREY,
+                logging.DEBUG: LoggingColours.GREY,
+                logging.NOTSET: LoggingColours.GREY,
+                0: LoggingColours.GREY,
+                "default": LoggingColours.GREY,
+                "reset": LoggingColours.RESET,
             }
         )
 
@@ -248,17 +251,29 @@ class ColouredLoggingFormatter(logging.Formatter):
                 ),
                 1,
             )
-        elif self.colour_level == "Line":
+        if self.colour_level == "Line":
             log_message = (
                 self._get_colored_format(record.levelno)
                 + super().format(record)
-                + self.reset
+                + LoggingColours.RESET
             )
-        elif self.colour_logger_name is not None:
-            log_message = log_message.replace(
-                self.logger_name,
-                self.__color_format_section(self.logger_name, self.logger_name_colour),
-                1,
-            )
+            if self.colour_logger_name is not None:
+                log_message = log_message.replace(
+                    self.logger_name,
+                    self.logger_name_colour
+                    + self.logger_name
+                    + LoggingColours.RESET
+                    + self._get_colored_format(record.levelno),
+                    1,
+                )
+        else:
+            if self.colour_logger_name is not None:
+                log_message = log_message.replace(
+                    self.logger_name,
+                    self.__color_format_section(
+                        self.logger_name, self.logger_name_colour
+                    ),
+                    1,
+                )
 
         return log_message

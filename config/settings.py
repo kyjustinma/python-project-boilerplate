@@ -309,8 +309,6 @@ def __init__():  # On initialisation
     global_variable_mappings(ENV_CONFIG)
     ### ========================================================================
     ### Add .ENV variables here (overwrite mappings)
-    env_get("TEST_ENV_STRING", default="DEFAULT_SETTING", variable_type=str)
-    env_get("TEST_ENV_STRING2", default="test", variable_type=str)
 
     ### ========================================================================
     ENV_CONFIG.update(vars(args))  # Arguments overwrites all Environment variables
