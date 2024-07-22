@@ -118,7 +118,7 @@ To learn more about the basics of git click here: <span style="font-size:2em;">[
  ┃ ┣ 📂database
  ┃ ┣ 📂images
  ┃ ┣ 📂json
- ┃ ┣ 📂logs
+ ┃ ┣ 📂logs                         - .log files
  ┃ ┗ 📂models                       - Machine Learning Models / Other files
  ┣ 📂environments                   - Place .env files for different environments
  ┣ 📂sample                         - Other Samples
@@ -139,6 +139,7 @@ To learn more about the basics of git click here: <span style="font-size:2em;">[
 - [ ] Implement **init**.py into template
 - [ ] Add docker compile template
 - [ ] ReadMe for each of the files within the template
+- [ ] Fix PrefixedTimedRotatingFileHandler to better match the TimedRotatingFileHandler
 
 ## Bugs
 
