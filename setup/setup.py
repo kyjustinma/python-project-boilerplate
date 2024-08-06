@@ -1,6 +1,6 @@
 import os
 import platform
-import subprocess, shlex
+import subprocess
 import argparse
 
 cwd = os.getcwd()
@@ -36,14 +36,14 @@ def parse_arguments():
     parser.add_argument(
         "--python3",
         action="store_true",
-        help="[Unix] Use 'python3' or 'python' when creating venv environment in ",
+        help="[Unix] Use 'python3' or 'python' when creating venv environment",
     )
     args = parser.parse_args()
     return args
 
 
 def prompt_users(env_type):
-    while env_type == None:
+    while env_type is None:
         prompt_env = input("Would you like to setup using 'pip' or 'conda'? ")
         if prompt_env.lower().strip() == "pip":
             env_confirmation = input("You have selected Pip3, are you sure? (Y/N) ")
@@ -93,9 +93,9 @@ def main():
         if error is not None:
             print(f"ERROR: {error.decode('utf-8')}")
     elif "posix" in os_type:
-        shell_script = f"setup/scripts/pip_unix_setup.sh"
+        shell_script = "setup/scripts/pip_unix_setup.sh"
         if "conda" in env_type:
-            shell_script = f"setup/scripts/conda_unix_setup.sh"
+            shell_script = "setup/scripts/conda_unix_setup.sh"
         os.chmod(shell_script, 0o755)
         process = subprocess.run(
             ["bash", "-c", f". {shell_script} {env_name} {unix_python_version}"]

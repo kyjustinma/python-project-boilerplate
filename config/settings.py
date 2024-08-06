@@ -15,7 +15,6 @@ import logging.config
 from dotenv import dotenv_values
 from .logging_utils import ColouredLoggingFormatter, PrefixedTimedRotatingFileHandler
 from .parse_arguments import parse_arguments
-from types import MappingProxyType
 
 
 file_path = os.path.dirname(os.path.realpath(__file__))
@@ -42,8 +41,8 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     )
 
 
-def __get_yaml_format(yaml_dict: dict, logger_name="ALL") -> str:
-    yaml_format = None
+def __get_yaml_format(yaml_dict: dict, logger_name: str | None = "ALL") -> str:
+    yaml_format = "%(asctime)s | [%(levelname)8s][%(module)s - %(funcName)s] | %(message)s"  # Standard format
     for valid_handlers in [
         yaml_handlers
         for yaml_handlers in yaml_dict["handlers"]
@@ -60,7 +59,7 @@ def __get_yaml_format(yaml_dict: dict, logger_name="ALL") -> str:
 
 
 def logger_init(
-    name: str,
+    name: str | None,
     colour_logging_level: Literal[None, "Level", "Line"] = None,
 ):
     logging_yaml_path = os.path.join(file_path, "prefixed_logger_setting.yaml")
@@ -79,7 +78,9 @@ def logger_init(
             coloured_handler.name = "coloured_console"
             coloured_handler.setFormatter(
                 ColouredLoggingFormatter(
-                    fmt=coloured_handler_fmt, colour_level=colour_logging_level
+                    fmt=coloured_handler_fmt,
+                    colour_level=colour_logging_level,
+                    colour_logger_name=(coloured_handler.name, None),
                 )
             )
             for handler in logger.handlers[:]:
@@ -96,7 +97,7 @@ def getCustomLogger(
     logger_name: str,
     logging_level=logging.DEBUG,
     colour_logging_level: Literal[None, "Level", "Line"] = "Level",
-    text_colour: str = None,
+    text_colour: str | None = None,
 ):
     level_converter = {
         "DEBUG": logging.DEBUG,
@@ -196,7 +197,9 @@ def load_dot_env(args: argparse.Namespace):
     return dotenv_config
 
 
-def env_get(variable_name: str, variable_type: type = str, default: str = None) -> None:
+def env_get(
+    variable_name: str, variable_type: type = str, default: str | None = None
+) -> None:
     """env_get
     Get values from the .ENV file
     Args:
@@ -205,7 +208,7 @@ def env_get(variable_name: str, variable_type: type = str, default: str = None) 
         type (str, optional): Expected type for the .ENV variable. Defaults to string.
     """
     env_value = ENV_CONFIG.get(variable_name, None)  # Get config if it exists
-    if env_value == None and default is None:
+    if env_value is None and default is None:
         raise Exception(
             f"Failed to start program as .ENV Variable [{variable_name}] was not defined and no default value was given."
         )
@@ -251,7 +254,7 @@ def env_get(variable_name: str, variable_type: type = str, default: str = None) 
             logger.warning(
                 f"[.env] MISSING '{variable_name}' - Setting to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
             )
-    except Exception as e:
+    except Exception:
         if env_value is not None:
             print(
                 f"\t\t\t\t   [.env] | Setting '{variable_name}' to {type(ENV_CONFIG[variable_name])}:'{ENV_CONFIG[variable_name]}'"
@@ -300,7 +303,7 @@ def __init__():  # On initialisation
     global logger
     global ENV_CONFIG
 
-    args = parse_arguments()  # Get input arguments
+    args = parse_arguments(load_arguments=False)  # Get input arguments
     ENV_CONFIG = load_dot_env(args=args)
 
     env_get("LOGGING_LEVEL", default="ALL", variable_type=str)
@@ -312,7 +315,6 @@ def __init__():  # On initialisation
 
     ### ========================================================================
     ENV_CONFIG.update(vars(args))  # Arguments overwrites all Environment variables
-    ENV_CONFIG = MappingProxyType(ENV_CONFIG)
     print(
         "======================================== Settings complete ====================================================\n"
     )
