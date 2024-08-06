@@ -1,17 +1,21 @@
 # Python Project Template
 
 ## About The Project
+This template has a few dependencies to ensure certain standards are met between team members.
 
-This is a template that uses both Conda / Pip and Pre-commit, to ensure that everyone in the team has the same environment running on their device.
 
-Pre-commit is used to ensure that certain commit standards are enforced.
+- Environment : Conda (or Pip) - Ensures that everyone is on the same Python Version
+- Pre-Commit : Is used to make sure certain flows are ran before commits and pushed to Git.
+  - Ruff : Used as a Linter + Formatter
+  - Commitizen : Standardising commit messages
+
 
 ## Built With
 
-[![python][python3.10.13-shield]][python3.10.13-url]
 [![conda][conda-forge-shield]][conda-forge-url]
+[![python][python3.10.13-shield]][python3.10.13-url]
 
-This template is primary focused on Python 3.10.13 with Anaconda (using Conda-forge)
+This template is primary focused on Python 3.10.13 with Anaconda
 
 # Getting Started
 
@@ -44,10 +48,11 @@ python setup/setup.py --python3
 1. You will be prompted to enter the `<env_name>`, please select a suitable name and ensure that the environment does not already exist
 2. The environment will be installed **THEN** `pre-commit` will also be installed.
 3. The base requirements.txt venv comes with the below as standard
-   - black
    - python-dotenv
    - PyYAML
+   - Ruff
    - pre-commit - installed and applied after via command line
+
 
 # Using Pre-Commit
 
@@ -98,7 +103,7 @@ To effectively use the template with Pre-Commit you have to ensure that your cus
    build | ci | docs | feat | fix | perf | refactor | style | test | chore | revert | bump
    ```
 
-To learn more about the basics of git click here: <span style="font-size:2em;">[Git basics](GIT_PRECOMMIT.md)</span>
+To learn more about the basics of git click here: <span style="font-size:2em;">[Git basics](docs/GIT_PRECOMMIT.md)</span>
 
 # Folder Structure
 
@@ -139,7 +144,7 @@ To learn more about the basics of git click here: <span style="font-size:2em;">[
 - [ ] Implement **init**.py into template
 - [ ] Add docker compile template
 - [ ] ReadMe for each of the files within the template
-- [ ] Fix PrefixedTimedRotatingFileHandler to better match the TimedRotatingFileHandler
+
 
 ## Bugs
 

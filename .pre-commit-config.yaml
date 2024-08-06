@@ -1,10 +1,18 @@
 fail_fast: true
 repos:
-  # Formatter
-  - repo: https://github.com/psf/black
-    rev: 24.4.2 # or master
+
+  ### Formatter and Linter (Flake8 + Black replacement)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.5.6
     hooks:
-      - id: black
+      # Run the linter.
+      - id: ruff
+        # types_or: [ python, pyi, jupyter ] # Add for Jupyter
+        args: [ --fix ]
+      # Run the formatter.
+      - id: ruff-format
+        # types_or: [ python, pyi, jupyter ] # Add for Jupyter
 
   # Pre commit checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -31,7 +39,7 @@ repos:
 
   # Commit messages checks
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.27.0
+    rev: v3.28.0
     hooks:
       - id: commitizen
         stages: [commit-msg]

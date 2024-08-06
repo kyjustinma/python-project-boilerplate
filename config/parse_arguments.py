@@ -1,8 +1,11 @@
 import argparse
 
 
-def parse_arguments():
+def parse_arguments(load_arguments: bool = False) -> argparse.Namespace:
     """Read arguments from a command line."""
+    if load_arguments is False:
+        return argparse.Namespace(env=".env")
+
     parser = argparse.ArgumentParser(description="Arguments get parsed via --commands")
     parser.add_argument(
         "--env",

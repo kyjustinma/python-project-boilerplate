@@ -84,7 +84,6 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
         """
         if self.stream:
             self.stream.close()
-            self.stream = None
         self.prefix = self.__get_date_prefix()
         self.baseFilename = self.__generate_filename(self.baseFilename)
         self.current_date = time.strftime("%Y-%m-%d")
@@ -167,8 +166,8 @@ class ColouredLoggingFormatter(logging.Formatter):
     def __init__(
         self,
         fmt: str,
+        colour_logger_name: tuple[str, str | None],
         colour_level: Literal[None, "Level", "Line"] = "Level",
-        colour_logger_name: tuple = None,
         level_colour_mapping: dict = {},
     ):
         """__init__ _summary_
@@ -176,23 +175,18 @@ class ColouredLoggingFormatter(logging.Formatter):
         Args:
             fmt (str): Format for the coloured formatter
             colour_level (bool, optional): Colour the logger level. Defaults to False.
-            colour_logger_name (tuple, optional): ("logger_name":<ASCII_Colour> | None (for blue)). Defaults to None.
+            colour_logger_name (tuple[str,str | None]): ("logger_name",<ASCII_Colour> | None (for White) ).
             level_colour_mapping (dict, optional): Colour mapping to the ASCII colour. Defaults to {}.
         """
         super().__init__(fmt)
         self.colour_level = colour_level
         self.level_colour_mapping = level_colour_mapping
         self.colour_logger_name = colour_logger_name
-        if self.colour_logger_name is not None:
-            self.logger_name = self.colour_logger_name[0]
-            try:
-                if self.colour_logger_name[1] is None:
-                    self.logger_name_colour = LoggingColours.WHITE
-                else:
-                    self.logger_name_colour = self.colour_logger_name[1]
-            except Exception as e:
-                self.logger_name_colour = LoggingColours.WHITE
-
+        self.logger_name = self.colour_logger_name[0]
+        if self.colour_logger_name[1] is None:
+            self.logger_name_colour = LoggingColours.WHITE
+        else:
+            self.logger_name_colour = self.colour_logger_name[1]
         self.level_colour_mapping.update(
             {
                 logging.CRITICAL: LoggingColours.RED_BG,

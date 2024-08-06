@@ -1,4 +1,4 @@
-black
 python-dotenv
 PyYAML
+ruff
 pre-commit
