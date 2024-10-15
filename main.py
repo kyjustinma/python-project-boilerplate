@@ -3,9 +3,12 @@ import time
 import signal
 
 from config.settings import ENV_CONFIG, logger, getCustomLogger
+from config.logging_utils import LoggingColours
 
 
-customLogger = getCustomLogger("customLogger", colour_logging_level="Level")
+customLogger = getCustomLogger(
+    "customLogger", colour_logging_level="level", text_colour=LoggingColours.BLUE
+)
 
 
 def exit_functions():
