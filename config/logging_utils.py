@@ -36,7 +36,7 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
             delay,
             utc,
         )
-        self.getFilesToDelete()
+        print(self.getFilesToDelete())
 
     def __get_date_prefix(self) -> str:
         return time.strftime("%Y-%m-%d")
