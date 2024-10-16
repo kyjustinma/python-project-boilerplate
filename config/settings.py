@@ -138,6 +138,7 @@ def getCustomLogger(
             "interval": yaml_config["handlers"][handler_type]["interval"],
             "backupCount": yaml_config["handlers"][handler_type]["backupCount"],
             "encoding": yaml_config["handlers"][handler_type]["encoding"],
+            "level": yaml_config["handlers"][handler_type].get("level", "INFO"),
         }
         file_handler = PrefixedTimedRotatingFileHandler(**PreFixTimeHandlerArgs)
         file_handler.setFormatter(

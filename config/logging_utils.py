@@ -15,16 +15,22 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
         logging (_type_): Default logging handler time rotating file handlers function
     """
 
+    LOG_TYPES = ["debug", "info", "warning", "error", "critical"]
+
     def __init__(
         self,
         filename,
         when="h",
         interval=1,
-        backupCount=0,
+        backupCount=7,
         encoding=None,
         delay=False,
         utc=False,
+        atTime=None,
+        errors=None,
+        **kwargs,
     ):
+        self.log_type = self.__get_log_type(kwargs, filename)
         self.prefix = self.__get_date_prefix()
         self.current_date = time.strftime("%Y-%m-%d")
         super().__init__(
@@ -35,8 +41,19 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
             encoding,
             delay,
             utc,
+            atTime,
+            errors,
         )
-        print(self.getFilesToDelete())
+        self.doRollover()
+
+    def __get_log_type(self, init_kwargs, filename):
+        if "level" in init_kwargs:
+            return init_kwargs["level"].lower()
+
+        for lgType in self.LOG_TYPES:
+            if lgType.lower() in filename.lower():
+                return lgType.lower()
+        raise Exception(f"LogType was not defined for {filename}")
 
     def __get_date_prefix(self) -> str:
         return time.strftime("%Y-%m-%d")
@@ -90,48 +107,34 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
         self.stream = self._open()
         if self.backupCount > 0:
             for s in self.getFilesToDelete():
-                print(f"Removing files {s}")
+                print(
+                    f"[logging][doRollOver] Removing out of date ({self.backupCount}) files {s}"
+                )
                 os.remove(s)
 
     def getFilesToDelete(self):
         """
         Determine the files to delete when rolling over.
-
-        More specific than the earlier method, which just used glob.glob().
         """
-        dirName, baseName = os.path.split(self.baseFilename)
-        fileNames = os.listdir(dirName)
         result = []
-        # See bpo-44753: Don't use the extension when computing the prefix.
+        dirName, baseName = os.path.split(self.baseFilename)  # dir, log_file
+        fileNames = os.listdir(dirName)  # All logs
         n, e = os.path.splitext(baseName)
-        prefix = n + "."
-        plen = len(prefix)
+        _, log_type = n.split(".")
 
-        date, log_type, file_end = baseName.split(".")
         for fileName in fileNames:
-            if self.namer is None:
-                # Our files will always start with baseName
-                if not fileName.startswith(baseName):
-                    continue
-            else:
-                # Our files could be just about anything after custom naming, but
-                # likely candidates are of the form
-                # foo.log.DATETIME_SUFFIX or foo.DATETIME_SUFFIX.log
-                if (
-                    not fileName.startswith(baseName)
-                    and fileName.endswith(e)
-                    and len(fileName) > (plen + 1)
-                    and not fileName[plen + 1].isdigit()
-                ):
-                    continue
+            if (
+                not fileName.endswith(e)
+                # or self.log_type not in fileName.lower()
+                or f".{log_type}" not in fileName
+            ):  # does have .log
+                continue
 
-            if log_type in fileName:
-                # Correct log type
-                parts = fileName.split(".")
-                for part in parts:
-                    if self.extMatch.match(part):
-                        result.append(os.path.join(dirName, fileName))
-                        break
+            parts = fileName.split(".")
+            for part in parts:
+                if self.extMatch.match(part):
+                    result.append(os.path.join(dirName, fileName))
+                    break
         if len(result) < self.backupCount:
             result = []
         else:
