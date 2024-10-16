@@ -60,7 +60,7 @@ def __get_yaml_format(yaml_dict: dict, logger_name: str | None = "ALL") -> str:
 
 def logger_init(
     name: str | None,
-    colour_logging_level: Literal[None, "Level", "Line"] = None,
+    colour_logging_level: Literal[None, "level", "line"] = "level",
 ):
     logging_yaml_path = os.path.join(file_path, "prefixed_logger_setting.yaml")
     # logging_yaml_path = os.path.join(file_path, "logger_setting.yaml")
@@ -79,8 +79,10 @@ def logger_init(
             coloured_handler.setFormatter(
                 ColouredLoggingFormatter(
                     fmt=coloured_handler_fmt,
+                    logger_name=None,
+                    logger_colour=None,
                     colour_level=colour_logging_level,
-                    colour_logger_name=(coloured_handler.name, None),
+                    level_colour_mapping={},
                 )
             )
             for handler in logger.handlers[:]:
@@ -96,7 +98,7 @@ def logger_init(
 def getCustomLogger(
     logger_name: str,
     logging_level=logging.DEBUG,
-    colour_logging_level: Literal[None, "Level", "Line"] = "Level",
+    colour_logging_level: Literal[None, "level", "line"] = "level",
     text_colour: str | None = None,
 ):
     level_converter = {
@@ -136,6 +138,7 @@ def getCustomLogger(
             "interval": yaml_config["handlers"][handler_type]["interval"],
             "backupCount": yaml_config["handlers"][handler_type]["backupCount"],
             "encoding": yaml_config["handlers"][handler_type]["encoding"],
+            "level": yaml_config["handlers"][handler_type].get("level", "INFO"),
         }
         file_handler = PrefixedTimedRotatingFileHandler(**PreFixTimeHandlerArgs)
         file_handler.setFormatter(
@@ -160,8 +163,10 @@ def getCustomLogger(
         coloured_handler.setFormatter(
             ColouredLoggingFormatter(
                 fmt=coloured_handler_fmt,
+                logger_name=logger_name,
+                logger_colour=text_colour,
                 colour_level=colour_logging_level,
-                colour_logger_name=(logger_name, text_colour),
+                level_colour_mapping={},
             )
         )
     else:
@@ -307,7 +312,7 @@ def __init__():  # On initialisation
     ENV_CONFIG = load_dot_env(args=args)
 
     env_get("LOGGING_LEVEL", default="ALL", variable_type=str)
-    logger = logger_init(ENV_CONFIG["LOGGING_LEVEL"], colour_logging_level="Level")
+    logger = logger_init(ENV_CONFIG["LOGGING_LEVEL"], colour_logging_level="level")
     logger.info(f"Current logging level set to '{ENV_CONFIG['LOGGING_LEVEL']}'")
     global_variable_mappings(ENV_CONFIG)
     ### ========================================================================

@@ -15,16 +15,22 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
         logging (_type_): Default logging handler time rotating file handlers function
     """
 
+    LOG_TYPES = ["debug", "info", "warning", "error", "critical"]
+
     def __init__(
         self,
         filename,
         when="h",
         interval=1,
-        backupCount=0,
+        backupCount=7,
         encoding=None,
         delay=False,
         utc=False,
+        atTime=None,
+        errors=None,
+        **kwargs,
     ):
+        self.log_type = self.__get_log_type(kwargs, filename)
         self.prefix = self.__get_date_prefix()
         self.current_date = time.strftime("%Y-%m-%d")
         super().__init__(
@@ -35,8 +41,19 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
             encoding,
             delay,
             utc,
+            atTime,
+            errors,
         )
-        self.getFilesToDelete()
+        self.doRollover()
+
+    def __get_log_type(self, init_kwargs, filename):
+        if "level" in init_kwargs:
+            return init_kwargs["level"].lower()
+
+        for lgType in self.LOG_TYPES:
+            if lgType.lower() in filename.lower():
+                return lgType.lower()
+        raise Exception(f"LogType was not defined for {filename}")
 
     def __get_date_prefix(self) -> str:
         return time.strftime("%Y-%m-%d")
@@ -90,48 +107,34 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
         self.stream = self._open()
         if self.backupCount > 0:
             for s in self.getFilesToDelete():
-                print(f"Removing files {s}")
+                print(
+                    f"[logging][doRollOver] Removing out of date ({self.backupCount}) files {s}"
+                )
                 os.remove(s)
 
     def getFilesToDelete(self):
         """
         Determine the files to delete when rolling over.
-
-        More specific than the earlier method, which just used glob.glob().
         """
-        dirName, baseName = os.path.split(self.baseFilename)
-        fileNames = os.listdir(dirName)
         result = []
-        # See bpo-44753: Don't use the extension when computing the prefix.
+        dirName, baseName = os.path.split(self.baseFilename)  # dir, log_file
+        fileNames = os.listdir(dirName)  # All logs
         n, e = os.path.splitext(baseName)
-        prefix = n + "."
-        plen = len(prefix)
+        _, log_type = n.split(".")
 
-        date, log_type, file_end = baseName.split(".")
         for fileName in fileNames:
-            if self.namer is None:
-                # Our files will always start with baseName
-                if not fileName.startswith(baseName):
-                    continue
-            else:
-                # Our files could be just about anything after custom naming, but
-                # likely candidates are of the form
-                # foo.log.DATETIME_SUFFIX or foo.DATETIME_SUFFIX.log
-                if (
-                    not fileName.startswith(baseName)
-                    and fileName.endswith(e)
-                    and len(fileName) > (plen + 1)
-                    and not fileName[plen + 1].isdigit()
-                ):
-                    continue
+            if (
+                not fileName.endswith(e)
+                # or self.log_type not in fileName.lower()
+                or f".{log_type}" not in fileName
+            ):  # does have .log
+                continue
 
-            if log_type in fileName:
-                # Correct log type
-                parts = fileName.split(".")
-                for part in parts:
-                    if self.extMatch.match(part):
-                        result.append(os.path.join(dirName, fileName))
-                        break
+            parts = fileName.split(".")
+            for part in parts:
+                if self.extMatch.match(part):
+                    result.append(os.path.join(dirName, fileName))
+                    break
         if len(result) < self.backupCount:
             result = []
         else:
@@ -166,27 +169,26 @@ class ColouredLoggingFormatter(logging.Formatter):
     def __init__(
         self,
         fmt: str,
-        colour_logger_name: tuple[str, str | None],
-        colour_level: Literal[None, "Level", "Line"] = "Level",
+        logger_name: str,
+        logger_colour: LoggingColours | None,
+        colour_level: Literal[None, "level", "line"] = "level",
         level_colour_mapping: dict = {},
     ):
         """__init__ _summary_
 
         Args:
             fmt (str): Format for the coloured formatter
-            colour_level (bool, optional): Colour the logger level. Defaults to False.
-            colour_logger_name (tuple[str,str | None]): ("logger_name",<ASCII_Colour> | None (for White) ).
+            logger_name (str): Name of the logger.
+            logger_colour (LoggingColours | None]): The colour of the logger.
             level_colour_mapping (dict, optional): Colour mapping to the ASCII colour. Defaults to {}.
         """
         super().__init__(fmt)
-        self.colour_level = colour_level
+        self.logger_name = logger_name
+        self.colour_level = (
+            colour_level.lower() if isinstance(colour_level, str) else None
+        )
         self.level_colour_mapping = level_colour_mapping
-        self.colour_logger_name = colour_logger_name
-        self.logger_name = self.colour_logger_name[0]
-        if self.colour_logger_name[1] is None:
-            self.logger_name_colour = LoggingColours.WHITE
-        else:
-            self.logger_name_colour = self.colour_logger_name[1]
+        self.logger_colour = logger_colour if logger_colour else LoggingColours.BLUE
         self.level_colour_mapping.update(
             {
                 logging.CRITICAL: LoggingColours.RED_BG,
@@ -235,9 +237,13 @@ class ColouredLoggingFormatter(logging.Formatter):
         Returns:
             str: Returns the string to be outputted in console
         """
+
         log_message = super().format(record)
-        if self.colour_level == "Level":
-            log_message = super().format(record)
+        if self.colour_level is None and self.logger_colour is None:
+            return log_message
+
+        if self.colour_level == "level":
+            # Replace the level with corresponding colour
             log_message = log_message.replace(
                 record.levelname,
                 self.__color_format_section(
@@ -245,28 +251,29 @@ class ColouredLoggingFormatter(logging.Formatter):
                 ),
                 1,
             )
-        if self.colour_level == "Line":
-            log_message = (
-                self._get_colored_format(record.levelno)
-                + super().format(record)
-                + LoggingColours.RESET
-            )
-            if self.colour_logger_name is not None:
+            if self.logger_name is not None:
                 log_message = log_message.replace(
                     self.logger_name,
-                    self.logger_name_colour
-                    + self.logger_name
-                    + LoggingColours.RESET
-                    + self._get_colored_format(record.levelno),
+                    self.__color_format_section(self.logger_name, self.logger_colour),
                     1,
                 )
-        else:
-            if self.colour_logger_name is not None:
+
+        elif self.colour_level == "line":
+            # Replace whole line with corresponding colour
+            log_message = (
+                self._get_colored_format(record.levelno)
+                + log_message
+                + LoggingColours.RESET
+            )
+            if self.logger_name is not None:
                 log_message = log_message.replace(
                     self.logger_name,
-                    self.__color_format_section(
-                        self.logger_name, self.logger_name_colour
-                    ),
+                    self.logger_colour
+                    + self.logger_name
+                    + LoggingColours.RESET
+                    + self._get_colored_format(
+                        record.levelno
+                    ),  # the rest of the line needs to continue that colour
                     1,
                 )
 
