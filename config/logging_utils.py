@@ -4,6 +4,19 @@ import logging
 import logging.handlers
 from typing import Literal
 from enum import Enum
+import yaml
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
+def load_logging_yaml(logging_yaml_path):
+    with open(logging_yaml_path, "r") as f:
+        return yaml.full_load(f)
+
+
+def add_handler_if_not_exists(logger, handler):
+    if not any(h.name == handler.name for h in logger.handlers):
+        logger.addHandler(handler)
 
 
 class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
@@ -106,11 +119,14 @@ class PrefixedTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler
         self.current_date = time.strftime("%Y-%m-%d")
         self.stream = self._open()
         if self.backupCount > 0:
-            for s in self.getFilesToDelete():
-                print(
-                    f"[logging][doRollOver] Removing out of date ({self.backupCount}) files {s}"
-                )
-                os.remove(s)
+            try:
+                for s in self.getFilesToDelete():
+                    logging.info(
+                        f"[logging][doRollOver] Removing out of date ({self.backupCount}) files {s}"
+                    )
+                    os.remove(s)
+            except Exception as e:
+                logging.info(e)
 
     def getFilesToDelete(self):
         """
@@ -159,6 +175,15 @@ class LoggingColours(str, Enum):
     CYAN = "\x1b[36m"
     WHITE = "\x1b[37m"
 
+    BRIGHT_BLACK: str = "\x1b[90m"  # Bright Black (Gray)
+    BRIGHT_RED: str = "\x1b[91m"  # Bright Red
+    BRIGHT_GREEN: str = "\x1b[92m"  # Bright Green
+    BRIGHT_YELLOW: str = "\x1b[93m"  # Bright Yellow
+    BRIGHT_BLUE: str = "\x1b[94m"  # Bright Blue
+    BRIGHT_MAGENTA: str = "\x1b[95m"  # Bright Magenta
+    BRIGHT_CYAN: str = "\x1b[96m"  # Bright Cyan
+    BRIGHT_WHITE: str = "\x1b[97m"  # Bright White
+
 
 class ColouredLoggingFormatter(logging.Formatter):
     """ColouredLoggingFormatter
@@ -202,8 +227,26 @@ class ColouredLoggingFormatter(logging.Formatter):
                 "reset": LoggingColours.RESET,
             }
         )
+        # Pre-compute coloured level names for speed
+        self._level_cache = {
+            logging.DEBUG: self.level_colour_mapping[logging.DEBUG]
+            + "DEBUG"
+            + LoggingColours.RESET,
+            logging.INFO: self.level_colour_mapping[logging.INFO]
+            + "INFO"
+            + LoggingColours.RESET,
+            logging.WARNING: self.level_colour_mapping[logging.WARNING]
+            + "WARNING"
+            + LoggingColours.RESET,
+            logging.ERROR: self.level_colour_mapping[logging.ERROR]
+            + "ERROR"
+            + LoggingColours.RESET,
+            logging.CRITICAL: self.level_colour_mapping[logging.CRITICAL]
+            + "CRITICAL"
+            + LoggingColours.RESET,
+        }
 
-    def _get_colored_format(self, levelno: int) -> str:
+    def _get_colored_line_prefix(self, levelno: int) -> str:
         """_get_colored_format
             Get the colour prefix for the log based on levelno
 
@@ -213,67 +256,40 @@ class ColouredLoggingFormatter(logging.Formatter):
         Returns:
             str: prefix for log level colour
         """
-        return self.level_colour_mapping[levelno]
+        return self.level_colour_mapping.get(levelno, "")
 
-    def __color_format_section(self, section: str, colour: str) -> str:
-        """__color_format_section
-            formats a section of string according to the levelno
-
-        Args:
-            section:(str): section of string
-            levelno (int): log level
-
-        Returns:
-            str: section with colour format
-        """
-        return colour + section + self.level_colour_mapping["reset"]
-
-    def format(self, record: logging.LogRecord) -> str:
-        """format
-          Adds colour and colour reset to log string
-        Args:
-            record (logging.LogRecord): Log record data
-
-        Returns:
-            str: Returns the string to be outputted in console
-        """
-
+    def format(self, record):
         log_message = super().format(record)
-        if self.colour_level is None and self.logger_colour is None:
-            return log_message
 
         if self.colour_level == "level":
-            # Replace the level with corresponding colour
-            log_message = log_message.replace(
-                record.levelname,
-                self.__color_format_section(
-                    record.levelname, self.level_colour_mapping[record.levelno]
-                ),
-                1,
-            )
-            if self.logger_name is not None:
+            # Replace only the LEVEL field
+            if record.levelno in self._level_cache:
+                log_message = log_message.replace(
+                    record.levelname, self._level_cache[record.levelno], 1
+                )
+
+            # Colour the logger name if specified
+            if self.logger_name and self.logger_name in log_message:
                 log_message = log_message.replace(
                     self.logger_name,
-                    self.__color_format_section(self.logger_name, self.logger_colour),
+                    self.logger_colour + self.logger_name + LoggingColours.RESET,
                     1,
                 )
 
         elif self.colour_level == "line":
-            # Replace whole line with corresponding colour
-            log_message = (
-                self._get_colored_format(record.levelno)
-                + log_message
-                + LoggingColours.RESET
-            )
-            if self.logger_name is not None:
+            # Wrap the whole line in the level's colour
+            colour_prefix = self._get_colored_line_prefix(record.levelno)
+            log_message = colour_prefix + log_message + LoggingColours.RESET
+
+            # Special case: if logger_name should be differently coloured,
+            # reset to its colour, then restore the line colour after it.
+            if self.logger_name and self.logger_name in log_message:
                 log_message = log_message.replace(
                     self.logger_name,
-                    self.logger_colour
-                    + self.logger_name
-                    + LoggingColours.RESET
-                    + self._get_colored_format(
-                        record.levelno
-                    ),  # the rest of the line needs to continue that colour
+                    (
+                        self.logger_colour + self.logger_name + LoggingColours.RESET,
+                        colour_prefix,  # restore line colour
+                    ),
                     1,
                 )
 

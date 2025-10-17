@@ -1,11 +1,8 @@
 import argparse
 
 
-def parse_arguments(load_arguments: bool = False) -> argparse.Namespace:
+def parse_arguments():
     """Read arguments from a command line."""
-    if load_arguments is False:
-        return argparse.Namespace(env=".env")
-
     parser = argparse.ArgumentParser(description="Arguments get parsed via --commands")
     parser.add_argument(
         "--env",
@@ -18,10 +15,10 @@ def parse_arguments(load_arguments: bool = False) -> argparse.Namespace:
     parser.add_argument(
         "--verbose",
         metavar="--verbosity",
-        type=int,
+        type=str,
         required=False,
-        default=0,
-        help="Verbosity of logging: 0=critical, 1=error, 2=warning, 3=info, 4=debug",
+        default=None,
+        help="Verbosity of logging: critical, error, warning, info, debug",
     )
     parser.add_argument(
         "--test",  # Tag to add to the parse
