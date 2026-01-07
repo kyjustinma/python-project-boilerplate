@@ -341,6 +341,9 @@ def _initialize_logging(colour_logging_level="level"):
     # Actually set up the root logger
     logger = logger_init(selected_logger, colour_logging_level=colour_logging_level)
     logger.info(f"Logger initialized with level '{ENV_CONFIG['LOGGING_LEVEL']}'")
+    logger.info("Program started with the following arguments")
+    for name, value in vars(args).items():
+        logger.info(f"Script Args [{name}]: {value}")
     return args
 
 
@@ -362,11 +365,13 @@ def __init__():  # On initialisation
     get_logger()
 
     ### ========================================================================
-    ### Add .ENV variables here (overwrite mappings)
-    env_get("HOST", default="0.0.0.0", variable_type=str)
-    env_get("PORT", default=9999, variable_type=int)
+    ## Add .ENV variables here (overwrite mappings)
+    env_get("TEST", variable_type=str, default="DEFAULT_VALUE")
 
     ### ========================================================================
+    # ENV_CONFIG.update(vars(args))  # Arguments overwrites all Environment variables
+    # ENV_CONFIG = MappingProxyType(ENV_CONFIG)
+    print()
     print(
         "======================================== Settings complete ====================================================\n"
     )

@@ -15,10 +15,10 @@ def parse_arguments():
     parser.add_argument(
         "--verbose",
         metavar="--verbosity",
-        type=str,
+        type=int,
         required=False,
-        default=None,
-        help="Verbosity of logging: critical, error, warning, info, debug",
+        default=0,
+        help="Verbosity of logging: 0=critical, 1=error, 2=warning, 3=info, 4=debug",
     )
     parser.add_argument(
         "--test",  # Tag to add to the parse
@@ -34,6 +34,11 @@ def parse_arguments():
         required=False,
         default=["sample", "list"],
         help="List of search items",
+    )
+    parser.add_argument(
+        "--flag_true",
+        action="flag_true",
+        help="When set the flag is set to True",
     )
     return parser.parse_args()
 

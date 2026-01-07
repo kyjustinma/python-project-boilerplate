@@ -164,7 +164,9 @@ class LoggingColours(str, Enum):
     RESET: str = "\x1b[0m"
 
     GREY: str = "\x1b[38;20m"
+    GREEN: str = "\x1b[32m"
     YELLOW: str = "\x1b[33;20m"
+    ORANGE: str = "\x1b[38;5;208m"
     RED = "\x1b[31;20m"
     BOLD_RED = "\x1b[31;1m"
     RED_BG = "\x1b[41;20m"
@@ -183,6 +185,12 @@ class LoggingColours(str, Enum):
     BRIGHT_MAGENTA: str = "\x1b[95m"  # Bright Magenta
     BRIGHT_CYAN: str = "\x1b[96m"  # Bright Cyan
     BRIGHT_WHITE: str = "\x1b[97m"  # Bright White
+
+
+def colour_text(message: str, colour: LoggingColours):
+    if isinstance(colour, LoggingColours):
+        return f"{colour.value}{message}{LoggingColours.RESET.value}"
+    return message
 
 
 class ColouredLoggingFormatter(logging.Formatter):
