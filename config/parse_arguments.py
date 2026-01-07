@@ -36,8 +36,8 @@ def parse_arguments():
         help="List of search items",
     )
     parser.add_argument(
-        "--flag_true",
-        action="flag_true",
+        "--flag",
+        action="store_true",
         help="When set the flag is set to True",
     )
     return parser.parse_args()
